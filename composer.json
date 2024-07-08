@@ -1,13 +1,14 @@
 {
   "name": "charlesbatista/cbbox",
   "description": "Uma biblioteca PHP gerar meta boxes dentro de plugins para WordPress.",
+  "license": "GPL-2.0-or-later",
   "type": "library",
   "require": {
     "php": "^7.4|^8.0"
   },
   "autoload": {
     "classmap": [
-      "src/"
+      "includes/"
     ]
   },
   "authors": [
