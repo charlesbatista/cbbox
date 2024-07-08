@@ -1,0 +1,144 @@
+/* ----- Campos dos formulários ------ */
+
+.form-table {
+    margin: 0 0 0.5rem 0;
+}
+
+.form-table label {
+    width: 100%;
+}
+
+.form-table th {
+    width: 250px;
+}
+
+.form-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.form-table tbody tr:not(:last-child) {
+    border-bottom: 1px solid #ddd
+}
+
+.form-table tbody th,
+.form-table tbody td {
+    padding: 2rem 1.5rem
+}
+
+.form-table th {
+    vertical-align: middle;
+}
+
+.campo-formulario.grupo>td>fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 1.375rem
+}
+
+.campo-formulario input[type=text],
+.campo-formulario input[type=date],
+.campo-formulario input[type=number],
+.campo-formulario select,
+.campo-formulario textarea {
+    width: 100%;
+    height: 1.5rem;
+    padding: 1.25rem 0.75rem;
+    font-size: 0.9rem;
+    border-color: #cdcdcd;
+    background-color: #fff;
+}
+
+.campo-formulario.textarea th,
+.campo-formulario.grupo th {
+    vertical-align: top;
+}
+
+.campo-formulario textarea {
+    height: 10rem;
+    padding: 0.65rem 0.75rem;
+    line-height: 1.2rem;
+}
+
+.campo-formulario.error:focus,
+.campo-formulario.valid:focus {
+    outline: 0;
+    box-shadow: none;
+    border-width: 2px;
+}
+
+.campo-formulario.error:focus,
+.campo-formulario.error {
+    border-color: #ff9e9f;
+}
+
+.campo-formulario.valid:focus,
+.campo-formulario.valid {
+    border-color: #86cb96;
+}
+
+fieldset:has(.selecionar-midia) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem
+}
+
+.selecionar-midia .dashicons {
+    vertical-align: sub;
+}
+
+.erro {
+    color: #ae0808;
+    padding: 0.6em;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.75rem !important;
+    background-color: #ffeff0;
+    border: 1px solid #ffccd0;
+}
+
+.descricao {
+    font-style: italic;
+    font-size: 0.9rem
+}
+
+.carregando {
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.75rem !important;
+}
+
+/* ----- Selectize ----- */
+
+.selectize-control.single .selectize-input {
+    box-shadow: none !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    border-color: #cdcdcd !important;
+    background-repeat: no-repeat !important
+}
+
+.selectize-control.single .selectize-input,
+.selectize-dropdown [data-selectable].option {
+    padding: 0.65rem 0.75rem !important;
+}
+
+.selectize-dropdown-emptyoptionlabel {
+    text-align: left !important
+}
+
+/* ----- Loading ----- */
+
+.dashicons.dashicons-update {
+    animation: dashicons-spin 1s infinite;
+    animation-timing-function: linear;
+}
+
+@keyframes dashicons-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
