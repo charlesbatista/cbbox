@@ -6,9 +6,9 @@
     "php": "^7.4|^8.0"
   },
   "autoload": {
-    "psr-4": {
-      "SeuNamespace\\": "src/"
-    }
+    "classmap": [
+      "src/"
+    ]
   },
   "authors": [
     {
@@ -16,5 +16,5 @@
       "email": "charlesbatista@hotmail.com"
     }
   ],
-  "minimum-stability": "beta"
+  "minimum-stability": "stable"
 }
