@@ -882,8 +882,10 @@ class CBBox extends CBBox_Helpers {
 
 	/**
 	 * Registra as folhas de estilo.
+	 * 
+	 * Obtém a URL baseada na estrutura de plugins.
 	 */
 	public function enqueue_styles() {
-		wp_enqueue_style('cbbox-style', plugin_dir_url(__FILE__) . 'css/style.css');
+		wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
 	}
 }
