@@ -269,8 +269,8 @@ class CBBox extends CBBox_Helpers {
 			// O parâmetro é um nome de campo, obtém o valor do campo correspondente
 			$valor_campo_comparado = get_transient(join('_', [$post_id, $parametro_comparacao]));
 
-			// Compara os valores
-			if ($valor < $valor_campo_comparado) {
+			// Compara os valores. Se retornar "1", a primeira data é maior, portanto, inválida
+			if ($this->compara_datas($valor, $valor_campo_comparado) === -1) {
 				$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
 			}
 		} else {

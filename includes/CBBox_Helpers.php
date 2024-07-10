@@ -177,4 +177,32 @@ class CBBox_Helpers {
 		// Comparar as datas
 		return $usuario_data > $current_data;
 	}
+
+	/**
+	 * Compara duas datas e verifica qual é a maior.
+	 * 
+	 * @param string 	$data1 		A primeira data a ser comparada.
+	 * @param string 	$data2 		A segunda data a ser comparada.
+	 * @param string 	$formato 	O formato das datas.
+	 * @return int 					Retorna 1 se a primeira data for maior, -1 se a segunda for maior, e 0 se forem iguais.
+	 */
+	function compara_datas($data1, $data2, $formato = 'd/m/Y') {
+		// Cria objetos DateTime para ambas as datas
+		$dateTime1 = DateTime::createFromFormat($formato . ' H:i:s', $data1 . ' 00:00:00');
+		$dateTime2 = DateTime::createFromFormat($formato . ' H:i:s', $data2 . ' 00:00:00');
+
+		// Verifica se a criação dos objetos DateTime foi bem-sucedida
+		if (!$dateTime1 || !$dateTime2) {
+			throw new Exception("Formato de data inválido ou data fornecida incorreta.");
+		}
+
+		// Compara as duas datas
+		if ($dateTime1 > $dateTime2) {
+			return 1;
+		} elseif ($dateTime1 < $dateTime2) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
 }
