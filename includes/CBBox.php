@@ -209,19 +209,20 @@ class CBBox extends CBBox_Helpers {
 					break;
 
 				case 'unico':
-					if ($parametros) {
+					if (!empty($parametros)) {
 						$campos_relacionados = explode(',', $parametros);
 
-						// Verificar se realmente existem múltiplos campos
-						if (count($campos_relacionados) > 1 && $this->valida_campos_relacionados($campos_relacionados)) {
-							$labels_relacionados = $this->obter_labels_por_nomes($campos, $campos_relacionados);
+						// verifica se realmente existem múltiplos campos e se a validação é necessária
+						if (count($campos_relacionados) > 1) {
+							if (!$this->valida_campos_relacionados($campos_relacionados)) {
+								$labels_relacionados  = $this->obter_labels_por_nomes($campos, $campos_relacionados);
+								$texto_erro_valicadao = 'Apenas um dos campos (' . join(', ', $labels_relacionados) . ') pode ser preenchido.';
 
-							foreach ($campos_relacionados as $campo_relacionado) {
-								$valor_relacionado = $_POST[$campo_relacionado] ?? '';
-								if (!empty($valor) && !empty($valor_relacionado)) {
-									$texto = 'Apenas um dos campos (' . join(', ', $labels_relacionados) . ') pode ser preenchido.';
-									$erros[$campo_nome_completo]     = $texto;
-									$erros[$campo_relacionado] = $texto;
+								// Aplicar o erro a todos os campos relacionados que estão preenchidos
+								foreach ($campos_relacionados as $campo_relacionado) {
+									if (!empty($_POST[$campo_relacionado])) {
+										$erros[$campo_relacionado] = $texto_erro_valicadao;
+									}
 								}
 							}
 						}
@@ -366,12 +367,35 @@ class CBBox extends CBBox_Helpers {
 		$nome_campo_completo = $prefixo_nome_campo . $campo['name'];
 		$valor_campo         = sanitize_text_field($_POST[$nome_campo_completo] ?? null);
 
+		// se existir valor no campo e houver configuração para formatar
 		if (!empty($valor_campo) && isset($campo['formatos'])) {
-			$valor_campo = $this->formata_data(
-				$valor_campo,
-				$campo['formatos']['exibir'] ?? '',
-				$campo['formatos']['salvar'] ?? ''
-			);
+
+			// se houver configuração para formatar o valor no salvamento
+			if (isset($campo['formatos']['salvar'])) {
+
+				// verificamos o tipo de formatação configurada
+				if (strpos($campo['formatos']['salvar'], 'regex:') === 0) {
+					// Extraímos a regex a partir do padrão especificado.
+					$regex       = substr($campo['formatos']['salvar'], 6);
+					$valor_campo = preg_replace($regex, '', $valor_campo);
+				} elseif (strpos($campo['formatos']['salvar'], 'data:') === 0) {
+					// Formatação de data conforme especificado.
+					$formato_salvar = substr($campo['formatos']['salvar'], 5);
+
+					// define o formato original baseado no formato que quer salvar
+					if ($formato_salvar == 'd/m/Y') {
+						$formato_de = 'Y-m-d';
+					} elseif ($formato_salvar == 'Y-m-d') {
+						$formato_de = 'd/m/Y';
+					} else {
+						$formato_de = null;
+					}
+
+					if (!empty($formato_de)) {
+						$valor_campo = $this->formata_data($valor_campo, $formato_de, $formato_salvar);
+					}
+				}
+			}
 		}
 
 		$this->mantem_valor_bd($post_id, $nome_campo_completo, $valor_campo);
@@ -437,12 +461,30 @@ class CBBox extends CBBox_Helpers {
 				} else {
 					$campo['valor'] = $post_meta[$nome_completo][0] ?? $campo["valor"] ?? null;
 
-					if (isset($campo['formatos']['exibir']) && isset($campo['formatos']['salvar'])) {
-						$campo['valor'] = $this->formata_data(
-							$campo['valor'],
-							$campo['formatos']['salvar'],
-							$campo['formatos']['exibir']
-						);
+					// se houver configuração para formatar o valor de exibição
+					if (isset($campo['formatos']['exibir'])) {
+						// verificamos o tipo de formatação configurada
+						if (strpos($campo['formatos']['exibir'], 'regex:') === 0) {
+							// Extraímos a regex a partir do padrão especificado.
+							$regex          = substr($campo['formatos']['exibir'], 6);
+							$campo['valor'] = preg_replace($regex, '', $campo['valor']);
+						} elseif (strpos($campo['formatos']['exibir'], 'data:') === 0) {
+							// Formatação de data conforme especificado.
+							$formato_exibir = substr($campo['formatos']['exibir'], 5);
+
+							// define o formato original baseado no formato que quer exibir
+							if ($formato_exibir == 'd/m/Y') {
+								$formato_de = 'Y-m-d';
+							} elseif ($formato_exibir == 'Y-m-d') {
+								$formato_de = 'd/m/Y';
+							} else {
+								$formato_de = null;
+							}
+
+							if (!empty($formato_de)) {
+								$campo['valor'] = $this->formata_data($campo['valor'], $formato_de, $formato_exibir);
+							}
+						}
 					}
 				}
 
@@ -841,18 +883,23 @@ class CBBox extends CBBox_Helpers {
 	}
 
 	/**
-	 * Valida se os campos relacionados existem no formulário ou contexto de validação.
+	 * Valida se apenas um dos campos relacionados está preenchido.
 	 *
 	 * @param array $campos_relacionados Lista de campos para verificar.
-	 * @return bool Retorna true se todos os campos existem, false caso contrário.
+	 * @return bool Retorna true se apenas um dos campos está preenchido, false caso contrário.
 	 */
-	private function valida_campos_relacionados($campos_relacionados) {
+	private function valida_campos_relacionados(array $campos_relacionados) {
+		$contador_preenchidos = 0; // Contador para campos preenchidos
+
 		foreach ($campos_relacionados as $campo_nome) {
-			if (!array_key_exists($campo_nome, $_POST)) { // Verifica se o campo existe no POST
-				return false;
+			if (!empty($_POST[$campo_nome]) && trim($_POST[$campo_nome]) !== '') {
+				$contador_preenchidos++;
+				error_log(print_r($campo_nome . ': ' . $_POST[$campo_nome], true));
 			}
 		}
-		return true;
+
+		// Retorna true se exatamente um dos campos estiver preenchido
+		return $contador_preenchidos === 1;
 	}
 
 	/**
