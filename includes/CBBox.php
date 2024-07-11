@@ -365,38 +365,9 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function salva_campo(int $post_id, array $campo, string $prefixo_nome_campo = '') {
 		$nome_campo_completo = $prefixo_nome_campo . $campo['name'];
-		$valor_campo         = sanitize_text_field($_POST[$nome_campo_completo] ?? null);
 
-		// se existir valor no campo e houver configuração para formatar
-		if (!empty($valor_campo) && isset($campo['formatos'])) {
-
-			// se houver configuração para formatar o valor no salvamento
-			if (isset($campo['formatos']['salvar'])) {
-
-				// verificamos o tipo de formatação configurada
-				if (strpos($campo['formatos']['salvar'], 'regex:') === 0) {
-					// Extraímos a regex a partir do padrão especificado.
-					$regex       = substr($campo['formatos']['salvar'], 6);
-					$valor_campo = preg_replace($regex, '', $valor_campo);
-				} elseif (strpos($campo['formatos']['salvar'], 'data:') === 0) {
-					// Formatação de data conforme especificado.
-					$formato_salvar = substr($campo['formatos']['salvar'], 5);
-
-					// define o formato original baseado no formato que quer salvar
-					if ($formato_salvar == 'd/m/Y') {
-						$formato_de = 'Y-m-d';
-					} elseif ($formato_salvar == 'Y-m-d') {
-						$formato_de = 'd/m/Y';
-					} else {
-						$formato_de = null;
-					}
-
-					if (!empty($formato_de)) {
-						$valor_campo = $this->formata_data($valor_campo, $formato_de, $formato_salvar);
-					}
-				}
-			}
-		}
+		// verificamos se existe alguma configuração para formatar o formato de exibição
+		$valor_campo = $this->formata_valor_campo($campo, 'salvar', $nome_campo_completo);
 
 		$this->mantem_valor_bd($post_id, $nome_campo_completo, $valor_campo);
 	}
@@ -444,52 +415,117 @@ class CBBox extends CBBox_Helpers {
 	 * @param int 		$post_id 		O ID do post usado para possíveis operações com transients.
 	 */
 	private function popula_valor_campo(array $post_meta, array &$campo, int $post_id, string $prefixo_grupo = '') {
+		// se um nome foi configurado para o campo
 		if (isset($campo['name'])) {
+			// vamos acrescentar o prefixo ao campo do nome, para casos
+			// em que o campo faz parte de um grupo de campos.
 			$nome_completo = $prefixo_grupo . $campo['name'];
 
+			// se o tipo do campo for para envio de arquivos pelo Mídias do WordPress
 			if ($campo['tipo'] === 'wp_media') {
 				$campo['valor'] = [
 					'url'     => $post_meta[$nome_completo . '_url'][0] ?? null,
 					'tamanho' => $post_meta[$nome_completo . '_tamanho'][0] ?? null
 				];
 			} else {
+				// definimos o nome do transient que guarda o valor do campo enviado via formulário
 				$transient       = join('_', [$post_id, $nome_completo]);
 				$valor_transient = get_transient($transient);
 
+				// se ele existir, vamos definir o valor do campo como esse valor
 				if ($valor_transient !== false) {
 					$campo['valor'] = $valor_transient;
+
+					// se não existir, vamos pegar o valor do banco de dados mesmo
 				} else {
 					$campo['valor'] = $post_meta[$nome_completo][0] ?? $campo["valor"] ?? null;
 
-					// se houver configuração para formatar o valor de exibição
-					if (isset($campo['formatos']['exibir'])) {
-						// verificamos o tipo de formatação configurada
-						if (strpos($campo['formatos']['exibir'], 'regex:') === 0) {
-							// Extraímos a regex a partir do padrão especificado.
-							$regex          = substr($campo['formatos']['exibir'], 6);
-							$campo['valor'] = preg_replace($regex, '', $campo['valor']);
-						} elseif (strpos($campo['formatos']['exibir'], 'data:') === 0) {
-							// Formatação de data conforme especificado.
-							$formato_exibir = substr($campo['formatos']['exibir'], 5);
-
-							// define o formato original baseado no formato que quer exibir
-							if ($formato_exibir == 'd/m/Y') {
-								$formato_de = 'Y-m-d';
-							} elseif ($formato_exibir == 'Y-m-d') {
-								$formato_de = 'd/m/Y';
-							} else {
-								$formato_de = null;
-							}
-
-							if (!empty($formato_de)) {
-								$campo['valor'] = $this->formata_data($campo['valor'], $formato_de, $formato_exibir);
-							}
-						}
-					}
+					// verificamos se existe alguma configuração para formatar o formato de exibição
+					$this->formata_valor_campo($campo, 'exibir');
 				}
 
+				// uma vez que já populamos o campo, vamos deletar o transient para evitar conflitos futuros
 				delete_transient($transient);
 			}
+		}
+	}
+
+	/**
+	 * Formata o valor do campo para exibição tem tela.
+	 * 
+	 * @param array 		&$campo						Referência do campo.
+	 * @param string 		$tipo					Tipo da formatação: "salvar" ou "exibir".
+	 * @param string|null	$nome_campo_completo	Caso faça parte de um grupo, esse é o nome completo.
+	 * 
+	 * @return null|string 	$valor_campo			Retorna nulo se o valor do campo for vazio, ou valor formatado se tiver sido configurado, ou valor original.
+	 */
+	private function formata_valor_campo(array &$campo, string $tipo, string|null $nome_campo_completo = null) {
+		// verificamos se o valor existe no array
+		if (!empty($campo['valor'])) {
+			$valor_campo = $campo['valor'];
+		} else {
+			// verificamos se existe um valor enviado via formulário
+			$valor_campo = sanitize_text_field($_POST[$nome_campo_completo] ?? null);
+
+			// se o valor do campo no array $campo e vindo do formuláro forem vazios
+			// vamos returnar "null".
+			if (empty($valor_campo)) {
+				return null;
+			}
+		}
+
+		// se não tiver sido configurado, não faremos nada.
+		if (empty($campo['formatos'][$tipo])) {
+			return $valor_campo;
+		}
+
+		// salvamos o formato em uma variável para facilitar o código
+		$formato = $campo['formatos'][$tipo];
+
+		switch (true) {
+			case strpos($formato, 'regex:') === 0:
+				// Extraímos a regex a partir do padrão especificado e aplicamos
+				$regex       = substr($formato, 6);
+				$valor_campo = preg_replace($regex, '', $valor_campo);
+				break;
+			case strpos($formato, 'data:') === 0:
+				// Formatação de data conforme especificado
+				$formato_exibir = substr($formato, 5);
+				$formato_de     = $this->determinar_formato_origem($formato_exibir);
+				if ($formato_de) {
+					$valor_campo = $this->formata_data($valor_campo, $formato_de, $formato_exibir);
+				}
+				break;
+			case $formato === 'apenas_numeros':
+				// Remove todos os caracteres não numéricos
+				$valor_campo = preg_replace('/\D/', '', $valor_campo);
+				break;
+			default:
+				// Se nenhum formato conhecido foi especificado, não altera o valor
+				break;
+		}
+
+
+		// atualizamos o valor na referência do campo
+		$campo['valor'] = $valor_campo;
+
+		return $valor_campo;
+	}
+
+	/**
+	 * Determina o formato de origem com base no formato de destino
+	 *
+	 * @param string $formato_exibir Formato de exibição configurado
+	 * @return string|null
+	 */
+	private function determinar_formato_origem($formato_exibir) {
+		switch ($formato_exibir) {
+			case 'd/m/Y':
+				return 'Y-m-d';
+			case 'Y-m-d':
+				return 'd/m/Y';
+			default:
+				return null;  // Formato desconhecido
 		}
 	}
 
@@ -894,7 +930,6 @@ class CBBox extends CBBox_Helpers {
 		foreach ($campos_relacionados as $campo_nome) {
 			if (!empty($_POST[$campo_nome]) && trim($_POST[$campo_nome]) !== '') {
 				$contador_preenchidos++;
-				error_log(print_r($campo_nome . ': ' . $_POST[$campo_nome], true));
 			}
 		}
 
