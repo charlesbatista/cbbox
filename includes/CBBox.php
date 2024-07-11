@@ -483,12 +483,12 @@ class CBBox extends CBBox_Helpers {
 		$formato = $campo['formatos'][$tipo];
 
 		switch (true) {
-			case strpos($formato, 'regex:') === 0:
+			case is_string($formato) && strpos($formato, 'regex:') === 0:
 				// Extraímos a regex a partir do padrão especificado e aplicamos
 				$regex       = substr($formato, 6);
 				$valor_campo = preg_replace($regex, '', $valor_campo);
 				break;
-			case strpos($formato, 'data:') === 0:
+			case is_string($formato) && strpos($formato, 'data:') === 0:
 				// Formatação de data conforme especificado
 				$formato_exibir = substr($formato, 5);
 				$formato_de     = $this->determinar_formato_origem($formato_exibir);
@@ -496,10 +496,15 @@ class CBBox extends CBBox_Helpers {
 					$valor_campo = $this->formata_data($valor_campo, $formato_de, $formato_exibir);
 				}
 				break;
-			case $formato === 'apenas_numeros':
+			case is_string($formato) && $formato === 'apenas_numeros':
 				// Remove todos os caracteres não numéricos
 				$valor_campo = preg_replace('/\D/', '', $valor_campo);
 				break;
+			case (is_array($formato) && isset($formato['decimal'])) || (is_string($formato) && $formato === 'decimal'):
+				error_log(print_r('decimal', true));
+				$valor_campo = $this->formata_decimal($valor_campo, $formato['decimal'] ?? []);
+				break;
+
 			default:
 				// Se nenhum formato conhecido foi especificado, não altera o valor
 				break;

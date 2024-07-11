@@ -205,4 +205,23 @@ class CBBox_Helpers {
 			return 0;
 		}
 	}
+	/**
+	 * Formata um valor para um formato decimal especificado.
+	 *
+	 * @param string 	$valor 		Valor original que precisa ser formatado.
+	 * @param array 	$config 	Configuração de formatação contendo casas decimais, separador de milhar e separador decimal.
+	 * @return string 				Valor formatado conforme a configuração.
+	 */
+	protected function formata_decimal(string $valor, array $configuracoes = []) {
+		// Extrai as configurações com valores padrão
+		$decimais          = $configuracoes[0] ?? 2;  // Padrão de 2 casas decimais
+		$separador_milhar  = $configuracoes[1] ?? '.';  // Padrão de separador de milhar é ponto
+		$separador_decimal = $configuracoes[2] ?? ',';  // Padrão de separador decimal é vírgula
+
+		// Remove pontos usados como separadores de milhar e substitui vírgula por ponto para preparar o valor float
+		$valor_float = (float)str_replace(',', '.', str_replace('.', '', $valor));
+
+		// Formata o número com os parâmetros especificados
+		return number_format($valor_float, $decimais, $separador_decimal, $separador_milhar);
+	}
 }
