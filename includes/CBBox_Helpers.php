@@ -15,7 +15,7 @@ class CBBox_Helpers {
 	 *
 	 * @return array Uma lista de arrays associativos, cada um contendo as chaves 'valor', 'texto', e 'slug'.
 	 */
-	protected function obtem_lista_estados() {
+	public function obtem_lista_estados() {
 		$estados = [
 			['valor' => 'AC', 'texto' => 'AC - Acre', 'slug' => 'acre'],
 			['valor' => 'AL', 'texto' => 'AL - Alagoas', 'slug' => 'alagoas'],
@@ -75,7 +75,7 @@ class CBBox_Helpers {
 	 * @param string 	$data 	A data a ser validada.
 	 * @return bool 			Retorna verdadeiro se a data estiver no formato correto, falso caso contrário.
 	 */
-	function valida_data($data, $formato = 'd/m/Y') {
+	public function valida_data($data, $formato = 'd/m/Y') {
 		$d = DateTime::createFromFormat($formato, $data);
 		return $d && $d->format($formato) === $data;
 	}
@@ -88,7 +88,7 @@ class CBBox_Helpers {
 	 *
 	 * Observação: Esta função assume que o valor pode estar no formato 'R$ 1.000,00' e ajusta para um formato numérico.
 	 */
-	function valida_valor($valor) {
+	public function valida_valor($valor) {
 		$valor = preg_replace('/[^\d,]/', '', $valor); // Remove tudo exceto dígitos e vírgula
 		$valor = str_replace(',', '.', $valor); // Troca vírgula por ponto para conversão
 		return is_numeric($valor) && $valor >= 0;
@@ -102,7 +102,7 @@ class CBBox_Helpers {
 	 *
 	 * Observação: O CPF deve ser fornecido com ou sem formatação (pontos e traço).
 	 */
-	function valida_cpf($cpf) {
+	public function valida_cpf($cpf) {
 		$cpf = preg_replace('/[^0-9]/', '', $cpf);
 		if (strlen($cpf) != 11 || preg_match('/(\d)\1{10}/', $cpf)) {
 			return false;
@@ -128,7 +128,7 @@ class CBBox_Helpers {
 	 *
 	 * Observação: O CNPJ deve ser fornecido com ou sem formatação (pontos, barra e traço).
 	 */
-	function valida_cnpj($cnpj) {
+	public function valida_cnpj($cnpj) {
 		$cnpj = preg_replace('/[^0-9]/', '', $cnpj);
 		if (strlen($cnpj) != 14) {
 			return false;
@@ -159,7 +159,7 @@ class CBBox_Helpers {
 	 * @param string 	$formato 	O formato da data.
 	 * @return bool 				Retorna true se a data for maior que a data atual, false caso contrário.
 	 */
-	protected function data_maior_que_hoje($data, $formato) {
+	public function data_maior_que_hoje($data, $formato) {
 		// Assegura que a hora esteja zerada e cria o objeto DateTime para a data do usuário
 		$usuario_data = DateTime::createFromFormat($formato . ' H:i:s', $data . ' 00:00:00');
 
@@ -186,7 +186,7 @@ class CBBox_Helpers {
 	 * @param string 	$formato 	O formato das datas.
 	 * @return int 					Retorna 1 se a primeira data for maior, -1 se a segunda for maior, e 0 se forem iguais.
 	 */
-	function compara_datas($data1, $data2, $formato = 'd/m/Y') {
+	public function compara_datas($data1, $data2, $formato = 'd/m/Y') {
 		// Cria objetos DateTime para ambas as datas
 		$dateTime1 = DateTime::createFromFormat($formato . ' H:i:s', $data1 . ' 00:00:00');
 		$dateTime2 = DateTime::createFromFormat($formato . ' H:i:s', $data2 . ' 00:00:00');
@@ -205,6 +205,7 @@ class CBBox_Helpers {
 			return 0;
 		}
 	}
+
 	/**
 	 * Formata um valor para um formato decimal especificado.
 	 *
@@ -212,7 +213,7 @@ class CBBox_Helpers {
 	 * @param array 	$config 	Configuração de formatação contendo casas decimais, separador de milhar e separador decimal.
 	 * @return string 				Valor formatado conforme a configuração.
 	 */
-	protected function formata_decimal(string $valor, array $configuracoes = []) {
+	public function formata_decimal(string $valor, array $configuracoes = []) {
 		// Extrai as configurações com valores padrão
 		$decimais          = $configuracoes[0] ?? 2;  // Padrão de 2 casas decimais
 		$separador_milhar  = $configuracoes[1] ?? '.';  // Padrão de separador de milhar é ponto
