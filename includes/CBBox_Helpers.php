@@ -224,4 +224,68 @@ class CBBox_Helpers {
 		// Formata o número com os parâmetros especificados
 		return number_format($valor_float, $decimais, $separador_decimal, $separador_milhar);
 	}
+
+	/**
+	 * Formata um número de CPF.
+	 *
+	 * Esta função recebe um número de CPF como string e o formata
+	 * no padrão XXX.XXX.XXX-XX. Caso o número não tenha 11 dígitos,
+	 * retorna null.
+	 *
+	 * @param string $cpf O número de CPF a ser formatado.
+	 * @return string|null O número de CPF formatado ou null se a entrada for inválida.
+	 */
+	public function formata_cpf($cpf) {
+		$cpf = preg_replace('/[^0-9]/', '', $cpf);
+		if (strlen($cpf) === 11) {
+			return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $cpf);
+		}
+		return null;
+	}
+
+	/**
+	 * Formata um número de CNPJ.
+	 *
+	 * Esta função recebe um número de CNPJ como string e o formata
+	 * no padrão XX.XXX.XXX/XXXX-XX. Caso o número não tenha 14 dígitos,
+	 * retorna null.
+	 *
+	 * @param string $cnpj O número de CNPJ a ser formatado.
+	 * @return string|null O número de CNPJ formatado ou null se a entrada for inválida.
+	 */
+	public function formata_cnpj($cnpj) {
+		$cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+		if (strlen($cnpj) === 14) {
+			return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $cnpj);
+		}
+		return null;
+	}
+	
+	/**
+	 * Formata um valor numérico como uma representação monetária brasileira.
+	 *
+	 * Esta função formata um valor numérico com uma quantidade específica de casas decimais,
+	 * utilizando vírgula como separador decimal e ponto como separador de milhares. O valor
+	 * formatado pode opcionalmente incluir o símbolo de moeda "R$".
+	 *
+	 * @param mixed   $moeda            O valor numérico a ser formatado. Pode ser um número ou uma string.
+	 * @param boolean $cifrao           Indica se o símbolo de moeda "R$" deve ser incluído. Padrão é verdadeiro.
+	 * @param integer $casas_decimais   Número de casas decimais a ser formatado.
+	 * @return string|float             O valor formatado como string ou 0 se a entrada não for válida.
+	 */
+	function formata_real($moeda, $cifrao = true, $casas_decimais = 2) {
+		$valor_numerico = floatval(str_replace(',', '.', $moeda));
+
+		if (is_numeric($valor_numerico)) {
+			$valor_formatado = number_format($valor_numerico, $casas_decimais, ',', '.');
+
+			if ($cifrao) {
+				$valor_formatado = 'R$ ' . $valor_formatado;
+			}
+
+			return $valor_formatado;
+		}
+
+		return 0;
+	}
 }
