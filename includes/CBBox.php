@@ -501,7 +501,6 @@ class CBBox extends CBBox_Helpers {
 				$valor_campo = preg_replace('/\D/', '', $valor_campo);
 				break;
 			case (is_array($formato) && isset($formato['decimal'])) || (is_string($formato) && $formato === 'decimal'):
-				error_log(print_r('decimal', true));
 				$valor_campo = $this->formata_decimal($valor_campo, $formato['decimal'] ?? []);
 				break;
 
