@@ -1126,6 +1126,6 @@ class CBBox extends CBBox_Helpers {
 	 * Obtém a URL baseada na estrutura de plugins.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js?' . time(), array(), $this->versao, true);
+		wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js', array(), $this->versao, true);
 	}
 }
