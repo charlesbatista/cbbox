@@ -1,11 +1,23 @@
 <?php
 
 /**
- * Classe para criar formulários.
+ * Classe CBBox
  * 
+ * Esta classe é responsável por criar e gerenciar formulários de maneira dinâmica e flexível.
+ * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
+ *
+ * @package charlesbatista/cbbox
+ * @version 1.3.3
  * @author Charles Batista <charles.batista@tjce.jus.br>
+ * @license MIT License
+ * @url https://packagist.org/packages/charlesbatista/cbbox
  */
 class CBBox extends CBBox_Helpers {
+
+	/**
+	 * Versão do framework
+	 */
+	private $versao = '1.3.3';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -15,18 +27,23 @@ class CBBox extends CBBox_Helpers {
 	private array $meta_boxes;
 
 	/**
-	 * ID do post relacionado ao formulário.
-	 * 
-	 * @var int|null
-	 */
-	private mixed $post_id;
-
-	/**
 	 * ID da página ou post type onde as meta boxes serão renderizadas.
 	 * 
 	 * @var string
 	 */
 	private string $pagina_id;
+
+	/**
+	 * Transient com erros de validação do formulário de cada meta box
+	 */
+	private mixed $meta_box_erros = null;
+
+	/**
+	 * Array com erros de validação do formulário como um todo
+	 *
+	 * @var array
+	 */
+	private array $meta_boxes_erros = [];
 
 	/**
 	 * Construtor da classe.
@@ -38,9 +55,12 @@ class CBBox extends CBBox_Helpers {
 		$this->pagina_id  = $pagina_id;
 		$this->meta_boxes = $meta_boxes;
 
-		$this->gera_meta_boxes();
+		add_action('add_meta_boxes', [$this, 'gera_meta_boxes'], 10, 2);
+		add_action("save_post_{$this->pagina_id}", [$this, 'salva_valores_meta_boxes']);
+		add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 2);
 
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
+		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 	}
 
 	/**
@@ -50,37 +70,113 @@ class CBBox extends CBBox_Helpers {
 	 * @return void
 	 */
 	public function gera_meta_boxes() {
-		// itera sobre o array de meta boxes para criar cada uma
-		foreach ($this->meta_boxes as &$meta_box) {
-			// adicionamos o action para criar a meta box
-			add_action('add_meta_boxes', function ($post_type, $post) use (&$meta_box) {
-				$this->adiciona_metabox($meta_box["id"], $meta_box["titulo"], 'meta_box', $this->pagina_id, [
-					'post_id' => $post->ID,
-					'campos'  => $meta_box["campos"]
-				]);
-			}, 10, 2);
+		// itera sobre o array de meta boxes para criar cada meta box
+		foreach ($this->meta_boxes as $meta_box) {
+			$this->adiciona_metabox($meta_box["id"], $meta_box["titulo"], 'meta_box', $this->pagina_id, [
+				'campos'  => $meta_box["campos"]
+			]);
+		}
+	}
 
-			// adicionamos o action para salvar os dados dos campos customizados
-			add_action("save_post_{$this->pagina_id}", function ($post_id) use ($meta_box) {
-				static $erros = [];
-				if ($this->verifica_requisicao_valida($meta_box["id"]) === false) {
-					$erros[] = "nonce_invalido";
-				} elseif ($this->valida_campos_personalizados($post_id, $meta_box["id"], $meta_box["campos"]) === false) {
-					$erros[] = "validacao_campos";
+	/**
+	 * Salva os valores dos campos personalizados especificados em meta boxes após validação.
+	 *
+	 * Este método itera sobre todas as meta boxes definidas, valida cada uma usando um nonce
+	 * e outros critérios de validação de campos, e salva os dados validados no banco de dados.
+	 * Caso ocorra algum erro durante a validação, registra o erro e redireciona para a página de edição.
+	 *
+	 * @param int 	$post_id 	O ID do post sendo salvo, usado para associar os metadados salvos.
+	 * 
+	 * Fluxo:
+	 * - Verifica se a requisição é válida (não é autosave, ajax, etc.).
+	 * - Itera sobre cada meta box, verificando a validade do nonce e dos campos.
+	 * - Se um erro é encontrado, adiciona ao registro de erros e pula para a próxima meta box.
+	 * - Se não houver erros, salva os dados dos campos usando uma função callback.
+	 * - Se erros foram registrados, redireciona para a página de edição com os erros como query params.
+	 */
+	public function salva_valores_meta_boxes(int $post_id) {
+		// Primeiro, verifica se a requisição atual é válida.
+		// Isso impede ações desnecessárias durante autosaves ou requisições AJAX.
+		if ($this->verifica_requisicao_valida() === false) {
+			return;  // Se a requisição não for válida, o método é encerrado prematuramente.
+		}
+
+		// Itera sobre cada meta box registrada para este post.
+		foreach ($this->meta_boxes as &$meta_box) {
+			// Verifica se o nonce é válido e se os campos personalizados são válidos.
+			// O nonce ajuda a proteger contra ataques CSRF garantindo que a requisição veio do site e do usuário esperado.
+			if (!$this->verifica_nonce_valido($meta_box["id"])) {
+				$this->meta_boxes_erros[] = "nonce_invalido";  // Adiciona erro de nonce inválido ao registro de erros.
+			} else {
+				// Se o nonce é válido, procede para validar os campos personalizados.
+				if (!$this->valida_campos_personalizados($post_id, $meta_box["id"], $meta_box["campos"])) {
+					$this->meta_boxes_erros[] = "erro_de_validacao";  // Adiciona erro de validação de campos ao registro de erros.
 				} else {
+					// Se não houver erro de validação dos campos, salva os valores dos campos personalizados.
 					call_user_func([$this, 'salva_valores'], $post_id, $meta_box["id"], $meta_box["campos"]);
 				}
-
-				// Adiciona um único redirecionamento no final do último meta box processado
-				add_action('shutdown', function () use ($erros, $post_id) {
-					if (!empty($erros)) {
-						$erro_query = http_build_query(['erro' => implode(',', $erros)]);
-						wp_redirect(admin_url("post.php?post={$post_id}&action=edit&" . $erro_query));
-						exit();
-					}
-				});
-			});
+			}
 		}
+
+		// Se houver erros após processar todas as meta boxes, 
+		// redireciona o usuário de volta para a página de edição do post.
+		add_action('shutdown', function () use ($post_id) {
+			if (!empty($this->meta_boxes_erros)) {
+				// Constrói uma query string com os erros para anexar à URL de redirecionamento.
+				$erro_query = http_build_query(['erro' => implode(',', array_unique($this->meta_boxes_erros))]);
+
+				// Redireciona para a página de edição do post com os erros como parâmetros GET.
+				wp_redirect(admin_url("post.php?post={$post_id}&action=edit&" . $erro_query));
+				exit(); // Encerra a execução para garantir que o redirecionamento ocorra.
+			}
+		});
+	}
+
+	/**
+	 * Ajusta o status do post baseado na validação de todos os campos de meta boxes antes de salvar no banco de dados.
+	 *
+	 * Este método é chamado no filtro `wp_insert_post_data` e determina se o post deve ser publicado ou revertido para rascunho
+	 * com base na validação dos campos personalizados de todas as meta boxes associadas ao tipo de post 'licitantes-sancoes'.
+	 *
+	 * @param array 	$data 		Array de dados do post que está prestes a ser salvo no banco de dados.
+	 * @param array 	$postarr 	Array contendo informações do post, incluindo ID e outros dados relevantes.
+	 * @return array 				O array de dados modificado com o status do post ajustado conforme a validação.
+	 * 
+	 * Fluxo:
+	 * - Verifica se a requisição é válida.
+	 * - Verifica se o tipo de post é da seção correta.
+	 * - Valida cada meta box: se qualquer uma falhar na validação, o post é definido como 'draft'.
+	 * - Se todas as validações passarem, o post é definido como 'publish'.
+	 */
+	public function ajusta_status_post($data, $postarr) {
+		// Verifica se a requisição é válida para evitar processar em situações não desejadas.
+		if ($this->verifica_requisicao_valida() === false) {
+			return $data;  // Retorna os dados sem alterações se a requisição não for válida.
+		}
+
+		// Verifica se o tipo de post é o esperado para esta validação.
+		if ($data['post_type'] === $this->pagina_id) {
+			$validado = true;
+
+			// Itera sobre cada meta box para verificar sua validade.
+			foreach ($this->meta_boxes as &$meta_box) {
+				// Verifica o nonce e valida os campos. 
+				// Se falhar, interrompe a validação e ajusta o flag.
+				if (!$this->verifica_nonce_valido($meta_box["id"]) || !$this->valida_campos_personalizados($postarr["ID"], $meta_box["id"], $meta_box["campos"])) {
+					$validado = false;
+					break; // Interrompe o loop ao encontrar o primeiro erro.
+				}
+			}
+
+			// Define o status do post baseado na validação.
+			if (!$validado) {
+				$data['post_status'] = 'draft';  // Se houver erro, o post vai para rascunho.
+			} else {
+				$data['post_status'] = 'publish';  // Se tudo estiver correto, o post é publicado.
+			}
+		}
+
+		return $data;  // Retorna os dados ajustados.
 	}
 
 	/**
@@ -322,7 +418,7 @@ class CBBox extends CBBox_Helpers {
 		wp_nonce_field("{$meta_box_id}_nonce", "{$meta_box_id}_nonce");
 
 		// renderiza o formulário
-		$this->renderiza($meta_box_id, $meta_box["args"]["post_id"], $meta_box["args"]["campos"]);
+		$this->renderiza($meta_box_id, $post->ID, $meta_box["args"]["campos"]);
 	}
 
 	/**
@@ -552,12 +648,19 @@ class CBBox extends CBBox_Helpers {
 	}
 
 	/**
-	 * Verifica se a requisição para salvar é válida.
+	 * Verifica a validade do nonce enviado via POST para uma operação de meta box específica.
 	 *
-	 * @param string		$meta_box_id	O ID da meta box.
-	 * @return bool							Retorna true se a requisição for válida, caso contrário false.
+	 * Este método é usado para garantir que a requisição ao servidor foi intencionada pelo usuário
+	 * e veio de uma fonte confiável dentro da mesma sessão, prevenindo ataques CSRF.
+	 *
+	 * @param string $meta_box_id O identificador da meta box, usado para construir o nome do nonce.
+	 * @return bool Retorna verdadeiro se o nonce é válido e presente na requisição, falso caso contrário.
+	 * 
+	 * Uso:
+	 * Se este método retornar falso, a operação que depende da validação do nonce
+	 * deverá ser abortada para manter a segurança da aplicação.
 	 */
-	private function verifica_requisicao_valida(string $meta_box_id) {
+	private function verifica_nonce_valido(string $meta_box_id) {
 		// Verifica se o "nonce" de validação da requisição existe.
 		if (!isset($_POST[$meta_box_id . '_nonce'])) {
 			return false;
@@ -568,6 +671,25 @@ class CBBox extends CBBox_Helpers {
 			return false;
 		}
 
+		return true;
+	}
+
+	/**
+	 * Verifica se a requisição atual pode proceder em termos de contexto de execução,
+	 * evitando execuções indesejadas durante autosaves, requisições AJAX ou ao mover posts para a lixeira.
+	 *
+	 * Este método é utilizado para prevenir a execução de lógicas de processamento de formulários
+	 * em contextos onde os dados não devem ser alterados, como durante salvamentos automáticos pelo WordPress
+	 * ou operações via AJAX que não estão diretamente relacionadas ao salvamento de posts.
+	 *
+	 * @return bool Retorna verdadeiro se a requisição é válida e deve ser processada, falso caso contrário.
+	 * 
+	 * Detalhes:
+	 * - DOING_AUTOSAVE: Verifica se a operação é um autosave, comum quando o WordPress salva automaticamente um rascunho.
+	 * - DOING_AJAX: Verifica se a requisição veio via AJAX, útil para ignorar processamentos em chamadas AJAX que não necessitam salvar dados.
+	 * - action 'trash' ou 'untrash': Ignora a execução quando o post está sendo movido para a lixeira ou restaurado dela.
+	 */
+	private function verifica_requisicao_valida() {
 		// Verifica se está sendo realizado um autosave.
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
 			return false;
@@ -575,6 +697,11 @@ class CBBox extends CBBox_Helpers {
 
 		// Verifica se a requisição é AJAX.
 		if (defined('DOING_AJAX') && DOING_AJAX) {
+			return false;
+		}
+
+		// Verifica se a ação é enviar para lixeira ou retirar.
+		if (isset($_REQUEST['action']) && ($_REQUEST['action'] === 'trash' || $_REQUEST['action'] === 'untrash')) {
 			return false;
 		}
 
@@ -621,21 +748,24 @@ class CBBox extends CBBox_Helpers {
 		$form .= '<tbody>';
 
 		// define o nome do transient para carregamento dos erros
-		$transient      = join('_', [$meta_box_id, $post_id]);
-		$meta_box_erros = get_transient($transient);
+		$this->meta_box_erros = get_transient(join('_', [$meta_box_id, $post_id]));
 
-		$this->exibe_mensagem_erro($meta_box_erros);
+		// exibe mensagem de erro caso o nonce esteja inválido
+		$this->exibe_mensagem_erro_nonce_invalido();
+
+		// exibe mensagens de erro de validação dos campos
+		$this->exibe_mensagem_erro();
 
 		// popula os campos com os dados do banco de dados
 		$campos = $this->popula_valores_campos($post_id, $campos);
 
 		// itera sobre todos os campos para renderizá-los
 		foreach ($campos as $campo) {
-			$form .= $this->renderiza_campo($campo, $meta_box_erros);
+			$form .= $this->renderiza_campo($campo);
 		}
 
-		// deleta o transient de erros
-		delete_transient($transient);
+		// deleta o transient
+		delete_transient(join('_', [$meta_box_id, $post_id]));
 
 		$form .= '</tbody>';
 		echo $form .= '</table>';
@@ -647,19 +777,37 @@ class CBBox extends CBBox_Helpers {
 	 * Utiliza uma variável estática para garantir que a mensagem de erro seja exibida apenas uma vez
 	 * durante a execução do script, evitando redundâncias na interface do usuário.
 	 *
-	 * @param array $meta_box_erros Array contendo os erros encontrados nos meta boxes.
 	 *                              A função verifica se este array não está vazio para proceder com a exibição da mensagem.
 	 */
-	function exibe_mensagem_erro($meta_box_erros) {
+	function exibe_mensagem_erro() {
 		// Variável estática para rastrear se a mensagem de erro já foi exibida
-		static $mensagem_exibida = false;
+		static $mensagem_erro_form_exibida = false;
 
 		// Verifica se há erros e se a mensagem ainda não foi exibida
-		if (!empty($meta_box_erros) && !$mensagem_exibida) {
+		if (!empty($this->meta_box_erros) && !$mensagem_erro_form_exibida) {
 			echo '<div class="notice notice-error"><p>';
 			echo 'Foram encontrados erros em um ou mais campos do formulário! Verifique-os antes de salvar novamente.';
 			echo '</p></div>';
-			$mensagem_exibida = true;  // Marca que a mensagem foi exibida, para evitar repetição
+			$mensagem_erro_form_exibida = true;  // Marca que a mensagem foi exibida, para evitar repetição
+		}
+	}
+
+	/**
+	 * Exibe uma mensagem de erro se um nonce inválido for detectado.
+	 * 
+	 * Este método verifica se o erro 'nonce_invalido' foi passado via URL e exibe uma
+	 * mensagem de erro única se esse for o caso. Utiliza uma variável estática para garantir
+	 * que a mensagem seja exibida apenas uma vez por ciclo de requisição.
+	 */
+	function exibe_mensagem_erro_nonce_invalido() {
+		static $mensagem_erro_nonce_invalido_exibida = false;
+
+		// Verifica se o erro de 'nonce_invalido' está presente na URL e se a mensagem ainda não foi exibida
+		if (isset($_GET['erro']) && strpos($_GET['erro'], 'nonce_invalido') !== false && !$mensagem_erro_nonce_invalido_exibida) {
+			echo '<div class="notice notice-warning"><p>';
+			echo 'Houve um erro ao processar sua solicitação. Isso pode ocorrer se a página ficar aberta por muito tempo. Por favor, tente novamente.';
+			echo '</p></div>';
+			$mensagem_erro_nonce_invalido_exibida = true;
 		}
 	}
 
@@ -667,18 +815,17 @@ class CBBox extends CBBox_Helpers {
 	 * Renderiza a área que compõe o fieldset de um campo ou grupo de campos.
 	 *
 	 * @param array $campo 				Array associativo contendo as informações do campo.
-	 * @param array $meta_box_erros 	Array associativo contendo mensagens de erro.
 	 * 
 	 * @return void
 	 */
-	private function renderiza_campo($campo, $meta_box_erros) {
+	private function renderiza_campo($campo) {
 		// verifica se o campo é obrigatório e adiciona o "*" na frente:
 		$label_obrigatorio = isset($campo["atributos"]["required"]) ? '*' : '';
 
 		$area_campo = '<tr class="campo-formulario ' . $campo["tipo"] . '">';
 		$area_campo .= '<th scope="row">' . $campo["label"] . $label_obrigatorio . ':</th>';
 		$area_campo .= '<td>';
-		$area_campo .= $this->renderiza_fieldset($campo, $meta_box_erros);
+		$area_campo .= $this->renderiza_fieldset($campo);
 		$area_campo .= '</td>';
 		return $area_campo .= '</tr>';
 	}
@@ -687,12 +834,11 @@ class CBBox extends CBBox_Helpers {
 	 * Renderiza um único campo do formulário.
 	 *
 	 * @param array $campo 				Array associativo contendo as informações do campo.
-	 * @param array $meta_box_erros 	Array associativo contendo mensagens de erro.
 	 * @param array $grupo_id  		 	ID do grupo do qual o campo faz parte.
 	 * 
 	 * @return string
 	 */
-	private function renderiza_fieldset($campo, $meta_box_erros, $grupo_id = null) {
+	private function renderiza_fieldset($campo, $grupo_id = null) {
 		// se uma classe css estiver sido definida
 		$css_class = (isset($campo["class"])) ? ' class="' . $campo["class"] . '"' : null;
 
@@ -727,7 +873,7 @@ class CBBox extends CBBox_Helpers {
 				$fieldset .= $this->renderiza_campo_select($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'grupo':
-				$fieldset .= $this->renderiza_campo_grupo($campo, $meta_box_erros);
+				$fieldset .= $this->renderiza_campo_grupo($campo);
 				break;
 		}
 
@@ -739,8 +885,8 @@ class CBBox extends CBBox_Helpers {
 		// exibimos o erro do campo caso não tenha passado na validação
 		$nome_campo_erros = (isset($grupo_id) ? $grupo_id . '_' : null) . $campo["name"];
 
-		if (isset($meta_box_erros[$nome_campo_erros])) {
-			$fieldset .=  '<p class="erro"><span class="dashicons dashicons-no"></span> ' . $meta_box_erros[$nome_campo_erros] . '</p>';
+		if (isset($this->meta_box_erros[$nome_campo_erros])) {
+			$fieldset .=  '<p class="erro"><span class="dashicons dashicons-no"></span> ' . $this->meta_box_erros[$nome_campo_erros] . '</p>';
 		}
 
 		return $fieldset .= '</fieldset>';
@@ -907,16 +1053,15 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Renderiza um grupo de campos.
 	 *
-	 * @param array 	$campo 				Array associativo contendo as informações do campo.
-	 * @param array 	$meta_box_erros 	Array associativo contendo mensagens de erro.
+	 * @param array $campo Array associativo contendo as informações do campo.
 	 * 
 	 * @return string
 	 */
-	private function renderiza_campo_grupo($campo, $meta_box_erros) {
+	private function renderiza_campo_grupo($campo) {
 		$campos_grupo = '';
 
 		foreach ($campo["campos"] as $subcampo) {
-			$campos_grupo .= $this->renderiza_fieldset($subcampo, $meta_box_erros, $campo["name"]);
+			$campos_grupo .= $this->renderiza_fieldset($subcampo, $campo["name"]);
 		}
 
 		return $campos_grupo;
@@ -973,5 +1118,14 @@ class CBBox extends CBBox_Helpers {
 	 */
 	public function enqueue_styles() {
 		wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
+	}
+
+	/**
+	 * Registra os scripts.
+	 * 
+	 * Obtém a URL baseada na estrutura de plugins.
+	 */
+	public function enqueue_scripts() {
+		wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js?' . time(), array(), $this->versao, true);
 	}
 }

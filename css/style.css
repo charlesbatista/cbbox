@@ -142,3 +142,72 @@ fieldset:has(.selecionar-midia) {
         transform: rotate(360deg);
     }
 }
+
+/* ----- Altera a box notice ----- */
+
+.notice.notice-warning,
+.notice.notice-error,
+.notice.notice-success,
+.wrap div.updated {
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.notice.notice-warning,
+.notice.notice-error,
+.notice.notice-success,
+.wrap div.updated {
+    padding-left: 2.5rem;
+}
+
+.notice.notice-warning:before,
+.notice.notice-error:before,
+.notice.notice-success:before {
+    content: "\f534";
+    font-family: "Dashicons";
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px
+}
+
+.notice p {
+    font-size: 0.9rem;
+}
+
+.notice.notice-error{
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #e8b7bc;
+}
+
+.notice.notice-error:before{
+    color: #721c24;
+}
+
+.notice.notice-warning {
+    background: #fff1c9;
+    border-color: #d7bd77;
+    color: #625534;
+}
+
+.notice.notice-warning:before {
+    color: #856404;
+}
+
+.notice.notice-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #add2b5;
+}
+
+.notice.notice-success:before {
+    color: #155724;
+}
+
+.notice-dismiss {
+    padding: 18px
+}
