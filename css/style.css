@@ -86,16 +86,6 @@ fieldset:has(.selecionar-midia) {
     vertical-align: sub;
 }
 
-.erro {
-    color: #ae0808;
-    padding: 0.6em;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    margin-top: 0.75rem !important;
-    background-color: #ffeff0;
-    border: 1px solid #ffccd0;
-}
-
 .descricao {
     font-style: italic;
     font-size: 0.9rem
@@ -105,6 +95,33 @@ fieldset:has(.selecionar-midia) {
     border-radius: 4px;
     font-size: 0.9rem;
     margin-top: 0.75rem !important;
+}
+
+/* ----- Mensagens ----- */
+
+.mensagem {
+    padding: 0.6em;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.75rem !important;
+}
+
+.erro {
+    color: #ae0808;
+    background-color: #ffeff0;
+    border: 1px solid #ffccd0;
+}
+
+.aviso {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+.sucesso {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
 }
 
 /* ----- Selectize ----- */
@@ -178,13 +195,13 @@ fieldset:has(.selecionar-midia) {
     font-size: 0.9rem;
 }
 
-.notice.notice-error{
+.notice.notice-error {
     color: #721c24;
     background-color: #f8d7da;
     border-color: #e8b7bc;
 }
 
-.notice.notice-error:before{
+.notice.notice-error:before {
     color: #721c24;
 }
 
