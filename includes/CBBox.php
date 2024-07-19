@@ -1117,7 +1117,9 @@ class CBBox extends CBBox_Helpers {
 	 * Obtém a URL baseada na estrutura de plugins.
 	 */
 	public function enqueue_styles() {
-		wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
+		if ($this->se_tela_plugin()) { 
+			wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
+		}
 	}
 
 	/**
@@ -1126,6 +1128,16 @@ class CBBox extends CBBox_Helpers {
 	 * Obtém a URL baseada na estrutura de plugins.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js', array(), $this->versao, true);
+		if ($this->se_tela_plugin()) {
+			wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js', array(), $this->versao, true);
+		}
 	}
+
+	/**
+	 * Verifica se a tela atual é a tela da seção do admin do plugin
+	 */
+	private function se_tela_plugin() {
+		return is_admin() && function_exists('get_current_screen') && get_current_screen()->post_type === $this->pagina_id;
+	}
+
 }
