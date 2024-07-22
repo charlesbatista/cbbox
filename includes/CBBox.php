@@ -886,7 +886,7 @@ class CBBox extends CBBox_Helpers {
 		$nome_campo_erros = (isset($grupo_id) ? $grupo_id . '_' : null) . $campo["name"];
 
 		if (isset($this->meta_box_erros[$nome_campo_erros])) {
-			$fieldset .=  '<p class="erro"><span class="dashicons dashicons-no"></span> ' . $this->meta_box_erros[$nome_campo_erros] . '</p>';
+			$fieldset .=  '<p class="mensagem erro"><span class="dashicons dashicons-no"></span> ' . $this->meta_box_erros[$nome_campo_erros] . '</p>';
 		}
 
 		return $fieldset .= '</fieldset>';
