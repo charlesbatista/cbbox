@@ -193,7 +193,7 @@ class CBBox_Helpers {
 
 		// Verifica se a criação dos objetos DateTime foi bem-sucedida
 		if (!$dateTime1 || !$dateTime2) {
-			throw new Exception("Formato de data inválido ou data fornecida incorreta.");
+			return false;
 		}
 
 		// Compara as duas datas

@@ -311,10 +311,10 @@ class CBBox extends CBBox_Helpers {
 						// verifica se realmente existem múltiplos campos e se a validação é necessária
 						if (count($campos_relacionados) > 1) {
 							if (!$this->valida_campos_relacionados($campos_relacionados)) {
-								$labels_relacionados  = $this->obter_labels_por_nomes($campos, $campos_relacionados);
+								$labels_relacionados  = $this->obtem_labels_por_nomes($campos, $campos_relacionados);
 								$texto_erro_valicadao = 'Apenas um dos campos (' . join(', ', $labels_relacionados) . ') pode ser preenchido.';
 
-								// Aplicar o erro a todos os campos relacionados que estão preenchidos
+								// aplica o erro a todos os campos relacionados que estão preenchidos
 								foreach ($campos_relacionados as $campo_relacionado) {
 									if (!empty($_POST[$campo_relacionado])) {
 										$erros[$campo_relacionado] = $texto_erro_valicadao;
@@ -334,8 +334,23 @@ class CBBox extends CBBox_Helpers {
 						$erros[$campo_nome_completo] = 'A URL fornecida é inválida.';
 					}
 					break;
+
 				case 'maior_ou_igual':
 					$this->verifica_maior_ou_igual($post_id, $campos, $valor, $parametros, $campo_nome_completo, $erros);
+					break;
+
+				case 'obrigatorio_se_vazio':
+					$campo_relacionado = $parametros;
+					if (empty($valor) && empty($_POST[$campo_relacionado])) {
+						$campos_relacionados       = [$campo_nome_completo, $campo_relacionado];
+						$label_campos_relacionados = $this->obtem_labels_por_nomes($campos, $campos_relacionados);
+						$texto_erro_valicadao      = 'Pelo menos um dos campos (' . join(', ', $label_campos_relacionados) . ') deve ser preenchido.';
+
+						// aplica o erro a todos os campos relacionados
+						foreach ($campos_relacionados as $campo_relacionado) {
+							$erros[$campo_relacionado] = $texto_erro_valicadao;
+						}
+					}
 					break;
 			}
 		}
@@ -344,7 +359,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Verifica se o valor de um campo é maior ou igual a um valor específico ou ao valor de outro campo.
 	 *
-	 *@param int 		$post_id 				O ID do post que está sendo validado, usado para gerenciar valores temporários.
+	 * @param int 		$post_id 				O ID do post que está sendo validado, usado para gerenciar valores temporários.
 	 * @param array 	&$campos 				Referência do array de todos os campos.
 	 * @param mixed 	$valor 					Valor atual do campo que está sendo validado.
 	 * @param mixed 	$parametro_comparacao 	Pode ser o nome de outro campo ou um valor fixo para comparação.
@@ -353,7 +368,8 @@ class CBBox extends CBBox_Helpers {
 	 * @return array 							Retorna um array de erros, possivelmente vazio se não houver erros.
 	 */
 	protected function verifica_maior_ou_igual(int $post_id, array &$campos, mixed $valor, mixed $parametro_comparacao, string $campo_nome_completo, &$erros) {
-		if (empty($valor)) {
+		// Verifica se o valor é null ou uma string vazia
+		if ($valor === null || $valor === '') {
 			return;
 		}
 
@@ -366,14 +382,34 @@ class CBBox extends CBBox_Helpers {
 			// O parâmetro é um nome de campo, obtém o valor do campo correspondente
 			$valor_campo_comparado = get_transient(join('_', [$post_id, $parametro_comparacao]));
 
-			// Compara os valores. Se retornar "1", a primeira data é maior, portanto, inválida
-			if ($this->compara_datas($valor, $valor_campo_comparado) === -1) {
-				$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
+			// verifica se o valor de comparação e o valor do campo são datas.
+			if ($this->valida_data($valor) && $this->valida_data($valor_campo_comparado)) {
+				// Se datas, vamos compará-las
+				if ($this->compara_datas($valor, $valor_campo_comparado) === -1) {
+					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
+				}
+			} elseif (is_numeric($valor) && is_numeric($valor_campo_comparado)) {
+				// Se números, vamos compará-los
+				if ($valor < $valor_campo_comparado) {
+					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
+				}
+			} else {
+				$erros[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
 			}
 		} else {
-			// Não encontrou o nome do campo, considera que é um valor fixo
-			if ($valor < $parametro_comparacao) {
-				$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
+			// Não encontrou o nome do campo, considera que é um valor fixo.
+			if ($this->valida_data($valor) && $this->valida_data($parametro_comparacao)) {
+				// Se datas, vamos compará-las
+				if ($this->compara_datas($valor, $parametro_comparacao) === -1) {
+					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
+				}
+			} elseif (is_numeric($valor) && is_numeric($parametro_comparacao)) {
+				// Se números, vamos compará-los
+				if ($valor < $parametro_comparacao) {
+					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
+				}
+			} else {
+				$erros[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
 			}
 		}
 	}
@@ -786,7 +822,7 @@ class CBBox extends CBBox_Helpers {
 		// Verifica se há erros e se a mensagem ainda não foi exibida
 		if (!empty($this->meta_box_erros) && !$mensagem_erro_form_exibida) {
 			echo '<div class="notice notice-error"><p>';
-			echo 'Foram encontrados erros em um ou mais campos do formulário! Verifique-os antes de salvar novamente.';
+			echo 'Post marcado como <b>Rascunho</b> pois foram encontrados erros no formulário! Verifique-os antes de salvar novamente.';
 			echo '</p></div>';
 			$mensagem_erro_form_exibida = true;  // Marca que a mensagem foi exibida, para evitar repetição
 		}
@@ -1098,7 +1134,7 @@ class CBBox extends CBBox_Helpers {
 	 * @param array $nomes_de_campos Array contendo os nomes dos campos para os quais os rótulos são necessários.
 	 * @return array Retorna um array de rótulos correspondentes aos nomes de campos fornecidos.
 	 */
-	private function obter_labels_por_nomes($todos_os_campos, $nomes_de_campos) {
+	private function obtem_labels_por_nomes(array $todos_os_campos, array $nomes_de_campos) {
 		$labels = [];
 		foreach ($nomes_de_campos as $nome) {
 			foreach ($todos_os_campos as $campo) {
@@ -1117,7 +1153,7 @@ class CBBox extends CBBox_Helpers {
 	 * Obtém a URL baseada na estrutura de plugins.
 	 */
 	public function enqueue_styles() {
-		if ($this->se_tela_plugin()) { 
+		if ($this->se_tela_plugin()) {
 			wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
 		}
 	}
@@ -1139,5 +1175,4 @@ class CBBox extends CBBox_Helpers {
 	private function se_tela_plugin() {
 		return is_admin() && function_exists('get_current_screen') && get_current_screen()->post_type === $this->pagina_id;
 	}
-
 }
