@@ -592,21 +592,25 @@ class CBBox extends CBBox_Helpers {
 	 * @return null|string 	$valor_campo			Retorna nulo se o valor do campo for vazio, ou valor formatado se tiver sido configurado, ou valor original.
 	 */
 	private function formata_valor_campo(array &$campo, string $tipo, string|null $nome_campo_completo = null) {
-		// verificamos se o valor existe no array
+		// se um valor para o campo for pré-definido, vamos populá-lo com este valor.
 		if (!empty($campo['valor'])) {
 			$valor_campo = $campo['valor'];
-		} else {
-			// verificamos se existe um valor enviado via formulário
-			$valor_campo = sanitize_text_field($_POST[$nome_campo_completo] ?? null);
-
-			// se o valor do campo no array $campo e vindo do formuláro forem vazios
-			// vamos returnar "null".
-			if (empty($valor_campo)) {
-				return null;
-			}
 		}
 
-		// se não tiver sido configurado, não faremos nada.
+		// se um novo valor foi enviado via $_POST para o campo, vamos populá-lo com este valor. 
+		// podendo substituir o valor pré-definido.
+		if (!empty($_POST[$nome_campo_completo])) {
+			$valor_campo = sanitize_text_field($_POST[$nome_campo_completo]);
+		}
+
+		// se mesmo assim o valor do campo for vazio, não precisamos formatar nada
+		// e apenas devolvemos "null"
+		if (empty($valor_campo)) {
+			return null;
+		}
+
+		// se nenhuma configuração para formatar o valor do campo tiver sido definida
+		// também não faremos nada e apenas devolvemos o valor original.
 		if (empty($campo['formatos'][$tipo])) {
 			return $valor_campo;
 		}
@@ -638,13 +642,13 @@ class CBBox extends CBBox_Helpers {
 
 			default:
 				// Se nenhum formato conhecido foi especificado, não altera o valor
-				break;
+				return $valor_campo;
 		}
-
 
 		// atualizamos o valor na referência do campo
 		$campo['valor'] = $valor_campo;
 
+		// retorna o valor do campo formatado
 		return $valor_campo;
 	}
 
