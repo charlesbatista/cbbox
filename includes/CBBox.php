@@ -1158,7 +1158,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	public function enqueue_styles() {
 		if ($this->se_tela_plugin()) {
-			wp_enqueue_style('cbbox-style', plugin_dir_url(__DIR__) . 'css/style.css');
+			wp_enqueue_style('cbbox-style', $this->obtem_url_completa_assets('css/style.css'));
 		}
 	}
 
@@ -1169,7 +1169,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	public function enqueue_scripts() {
 		if ($this->se_tela_plugin()) {
-			wp_enqueue_script('cbbox-main-script', plugin_dir_url(__DIR__) . 'js/main.js', array(), $this->versao, true);
+			wp_enqueue_script('cbbox-main-script', $this->obtem_url_completa_assets('js/main.js'), array(), $this->versao, true);
 		}
 	}
 
@@ -1178,5 +1178,26 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function se_tela_plugin() {
 		return is_admin() && function_exists('get_current_screen') && get_current_screen()->post_type === $this->pagina_id;
+	}
+
+	/**
+	 * Obtém a URL completa para carregar assets;
+	 *
+	 * @param string 	$asset	Caminho relativo para o arquivo.
+	 * @return string 			Caminho completo para o asset.
+	 */
+	private function obtem_url_completa_assets(string $asset) {
+		// obtém o caminho absoluto do root do WordPress, substuindo as
+		// barras para construção da URL.
+		$caminho_absoluto_wordpress  = str_replace('\\', '/', ABSPATH);
+
+		// obtém o caminho absoluto do diretório pai do diretório atual
+		$caminho_absoluto_diretorio_principal = str_replace('\\', '/', dirname(__DIR__));
+
+		// remove o caminho absoluto para obter apenas o caminho relativo do diretório
+		$caminho_relativo_diretorio_principal = str_replace($caminho_absoluto_wordpress, '', $caminho_absoluto_diretorio_principal);
+
+		// devolve a URL completa com a home do WordPress e caminho relativo do asset.
+		return site_url($caminho_relativo_diretorio_principal . '/' . $asset);
 	}
 }
