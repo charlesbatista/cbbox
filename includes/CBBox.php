@@ -1026,9 +1026,9 @@ class CBBox extends CBBox_Helpers {
 	 * 
 	 * @return string
 	 */
-	private function renderiza_campo_textarea($campo, $valor, $atributos, ?string $grupo_id) {
+	private function renderiza_campo_textarea($campo, $valor = "", $atributos, ?string $grupo_id) {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
-		return '<textarea id="' . $nome_campo . '" name="' . $nome_campo . '" ' . $atributos . '>' . htmlentities($valor) . '</textarea>';
+		return '<textarea id="' . $nome_campo . '" name="' . $nome_campo . '" ' . $atributos . '>' . htmlentities($valor ?? "") . '</textarea>';
 	}
 
 	/**
