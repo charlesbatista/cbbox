@@ -1081,9 +1081,20 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		if (is_array($opcoes) && !empty($opcoes)) {
-			foreach ($opcoes as $opcao) {
-				$option_attributes = $this->obtem_atributos_campo($opcao, '');
-				$select .=  '<option value="' . htmlspecialchars($opcao["valor"]) . '" ' . selected($valor, $opcao["valor"], false) . $option_attributes . '>' . htmlspecialchars($opcao["texto"]) . '</option>';
+			foreach ($opcoes as $key => $opcao) {
+				// Verifica se é um array associativo ou indexado
+				if (is_array($opcao)) {
+					// Array de arrays (ex: com 'valor' e 'texto')
+					$option_attributes = $this->obtem_atributos_campo($opcao, '');
+					$select .= '<option value="' . htmlspecialchars($opcao['valor']) . '" ' .
+						selected($valor, $opcao['valor'], false) . $option_attributes . '>' .
+						htmlspecialchars($opcao['texto']) . '</option>';
+				} else {
+					// Array associativo simples (ex: chave como 'valor' e 'texto')
+					$select .= '<option value="' . htmlspecialchars($key) . '" ' .
+						selected($valor, $key, false) . '>' .
+						htmlspecialchars($opcao) . '</option>';
+				}
 			}
 		}
 
