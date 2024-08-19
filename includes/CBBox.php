@@ -1045,7 +1045,7 @@ class CBBox extends CBBox_Helpers {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
 
 		$wp_media = '<p><input type="text" id="' . $nome_campo . '_url" name="' . $nome_campo  . '_url" value="' . $valor["url"] . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
-		$wp_media .= '<p><button type="button" class="button button-primary button-large selecionar-midia">';
+		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia">';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
 		$wp_media .=  ' Selecionar ou enviar anexo';
 		$wp_media .=  '</button></p>';
