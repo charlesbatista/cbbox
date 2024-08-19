@@ -76,13 +76,13 @@
     border-color: #86cb96;
 }
 
-fieldset:has(.selecionar-midia) {
+fieldset:has(.cbbox-selecionar-midia) {
     display: flex;
     flex-direction: column;
     gap: 0.5rem
 }
 
-.selecionar-midia .dashicons {
+.cbbox-selecionar-midia .dashicons {
     vertical-align: sub;
 }
 
