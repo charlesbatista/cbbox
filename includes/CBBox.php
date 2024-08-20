@@ -221,7 +221,11 @@ class CBBox extends CBBox_Helpers {
 		if (!empty($campos)) {
 			foreach ($campos as $campo) {
 				if (!empty($campo["name"])) {
-					$campo_nome_completo = $prefixo . $campo["name"];
+					if ($campo["tipo"] === 'wp_media') {
+						$campo_nome_completo = $prefixo . $campo["name"] . "_url";
+					} else {
+						$campo_nome_completo = $prefixo . $campo["name"];
+					}
 
 					// recebe o valor do formulário
 					$valor = $_POST[$campo_nome_completo] ?? '';
@@ -496,12 +500,22 @@ class CBBox extends CBBox_Helpers {
 	 * @param string $prefixo_nome_campo Prefixo opcional para o nome do campo, usado principalmente para campos que são parte de um grupo.
 	 */
 	private function salva_campo(int $post_id, array $campo, string $prefixo_nome_campo = '') {
-		$nome_campo_completo = $prefixo_nome_campo . $campo['name'];
+		if ($campo["tipo"] === 'wp_media') {
+			$subcampos = ['url', 'id'];
+
+			foreach ($subcampos as $subcampo) {
+				$nome_campo  = $prefixo_nome_campo . $campo["name"] . "_" . $subcampo;
+				$valor_campo = $this->formata_valor_campo($campo, 'salvar', $nome_campo);
+				$this->mantem_valor_bd($post_id, $nome_campo, $valor_campo);
+			}
+		} else {
+			$campo_nome_completo = $prefixo_nome_campo . $campo["name"];
+		}
 
 		// verificamos se existe alguma configuração para formatar o formato de exibição
-		$valor_campo = $this->formata_valor_campo($campo, 'salvar', $nome_campo_completo);
+		$valor_campo = $this->formata_valor_campo($campo, 'salvar', $campo_nome_completo);
 
-		$this->mantem_valor_bd($post_id, $nome_campo_completo, $valor_campo);
+		$this->mantem_valor_bd($post_id, $campo_nome_completo, $valor_campo);
 	}
 
 	/**
@@ -556,8 +570,8 @@ class CBBox extends CBBox_Helpers {
 			// se o tipo do campo for para envio de arquivos pelo Mídias do WordPress
 			if ($campo['tipo'] === 'wp_media') {
 				$campo['valor'] = [
-					'url'     => $post_meta[$nome_completo . '_url'][0] ?? null,
-					'tamanho' => $post_meta[$nome_completo . '_tamanho'][0] ?? null
+					'url' => $post_meta[$nome_completo . '_url'][0] ?? null,
+					'id'  => $post_meta[$nome_completo . '_id'][0] ?? null
 				];
 			} else {
 				// definimos o nome do transient que guarda o valor do campo enviado via formulário
@@ -874,7 +888,7 @@ class CBBox extends CBBox_Helpers {
 	 * Renderiza um único campo do formulário.
 	 *
 	 * @param array $campo 				Array associativo contendo as informações do campo.
-	 * @param array $grupo_id  		 	ID do grupo do qual o campo faz parte.
+	 * @param int $grupo_id  		 	ID do grupo do qual o campo faz parte.
 	 * 
 	 * @return string
 	 */
@@ -907,6 +921,7 @@ class CBBox extends CBBox_Helpers {
 				$fieldset .= $this->renderiza_campo_textarea($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'wp_media':
+				error_log(print_r($valor, true));
 				$fieldset .= $this->renderiza_campo_wp_media($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'select':
@@ -1049,7 +1064,7 @@ class CBBox extends CBBox_Helpers {
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
 		$wp_media .=  ' Selecionar ou enviar anexo';
 		$wp_media .=  '</button></p>';
-		return $wp_media .= '<input type="hidden" id="' . $nome_campo  . '_tamanho" name="' . $nome_campo  . '_tamanho" value="' . $valor["tamanho"] . '" readonly />';
+		return $wp_media .= '<input type="hidden" id="' . $nome_campo  . '_id" name="' . $nome_campo  . '_id" value="' . $valor["id"] . '" readonly />';
 	}
 
 	/**

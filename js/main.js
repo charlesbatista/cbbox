@@ -28,11 +28,15 @@ document.addEventListener("DOMContentLoaded", function () {
             .get("selection")
             .first()
             .toJSON();
+
+          console.log(attachment);
           const fieldsetMedia = campo.closest("fieldset");
-          fieldsetMedia.querySelector('input[type="text"]').value =
-            attachment.url;
-          fieldsetMedia.querySelector('input[type="hidden"]').value =
-            attachment.filesizeInBytes;
+          const inputUrl = fieldsetMedia.querySelector('input[id$="_url"]');
+          const inputId = fieldsetMedia.querySelector(
+            'input[id$="_id"]'
+          );
+          inputUrl.setAttribute('value', attachment.url);
+          inputId.setAttribute('value', attachment.id);
         });
 
         // Abrir o frame de seleção de arquivo
