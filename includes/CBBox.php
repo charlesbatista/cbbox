@@ -921,7 +921,6 @@ class CBBox extends CBBox_Helpers {
 				$fieldset .= $this->renderiza_campo_textarea($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'wp_media':
-				error_log(print_r($valor, true));
 				$fieldset .= $this->renderiza_campo_wp_media($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'select':
