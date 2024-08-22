@@ -181,7 +181,8 @@ fieldset:has(.cbbox-selecionar-midia) {
 
 .notice.notice-warning:before,
 .notice.notice-error:before,
-.notice.notice-success:before {
+.notice.notice-success:before,
+.wrap div.updated:before {
     content: "\f534";
     font-family: "Dashicons";
     position: absolute;
@@ -215,13 +216,15 @@ fieldset:has(.cbbox-selecionar-midia) {
     color: #856404;
 }
 
-.notice.notice-success {
+.notice.notice-success,
+.wrap div.updated {
     color: #155724;
     background-color: #d4edda;
     border-color: #add2b5;
 }
 
-.notice.notice-success:before {
+.notice.notice-success:before,
+.wrap div.updated:before {
     color: #155724;
 }
 
