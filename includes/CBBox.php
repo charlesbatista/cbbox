@@ -55,12 +55,14 @@ class CBBox extends CBBox_Helpers {
 		$this->pagina_id  = $pagina_id;
 		$this->meta_boxes = $meta_boxes;
 
-		add_action('add_meta_boxes', [$this, 'gera_meta_boxes'], 10, 2);
-		add_action("save_post_{$this->pagina_id}", [$this, 'salva_valores_meta_boxes']);
-		add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 2);
+		if (is_admin()) {
+			add_action('add_meta_boxes', [$this, 'gera_meta_boxes'], 10, 2);
+			add_action("save_post_{$this->pagina_id}", [$this, 'salva_valores_meta_boxes']);
+			add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 2);
 
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
-		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+			add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
+			add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+		}
 	}
 
 	/**
@@ -1095,6 +1097,11 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		if (is_array($opcoes) && !empty($opcoes)) {
+			if (count($opcoes) === 1 && isset($campo["pre-selecionar-opcao-unica"]) && $campo["pre-selecionar-opcao-unica"]) {
+				// Define $valor como a única opção disponível
+				$valor = is_array(reset($opcoes)) ? reset($opcoes)['valor'] : key($opcoes);
+			}
+
 			foreach ($opcoes as $key => $opcao) {
 				// Verifica se é um array associativo ou indexado
 				if (is_array($opcao)) {
