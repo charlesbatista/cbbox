@@ -21,14 +21,14 @@ document.addEventListener("DOMContentLoaded", function () {
           multiple: false
         };
 
-        // Verificar se o atributo data-formatos-aceitos existe e adicionar ao filtro de tipos
-        const formatosAceitos = campo.getAttribute('data-formatos-aceitos');
-        if (formatosAceitos) {
+        // Verificar se o atributo para formatos válidos existe e adicionar ao filtro de tipos
+        const formatos_validos = campo.getAttribute('data-formatos-validos');
+        if (formatos_validos) {
           mediaSettings.library = {
-            type: formatosAceitos.split(',') // Adicionar os formatos aceitos, separando por vírgula
+            type: formatos_validos.split(',')
           };
         }
-        
+
         // Criar o frame de seleção de mídia com as configurações definidas
         const file_frame = new wp.media(mediaSettings);
 
