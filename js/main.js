@@ -12,14 +12,25 @@ document.addEventListener("DOMContentLoaded", function () {
       button.addEventListener("click", function () {
         const campo = this;
 
-        // Definir as configurações da mídia
-        const file_frame = new wp.media({
+        // Configuração inicial do frame de mídia
+        const mediaSettings = {
           title: "Selecione ou envie um novo arquivo",
           button: {
             text: "Utilizar este arquivo",
           },
-          multiple: false,
-        });
+          multiple: false
+        };
+
+        // Verificar se o atributo data-formatos-aceitos existe e adicionar ao filtro de tipos
+        const formatosAceitos = campo.getAttribute('data-formatos-aceitos');
+        if (formatosAceitos) {
+          mediaSettings.library = {
+            type: formatosAceitos.split(',') // Adicionar os formatos aceitos, separando por vírgula
+          };
+        }
+        
+        // Criar o frame de seleção de mídia com as configurações definidas
+        const file_frame = new wp.media(mediaSettings);
 
         // Capturar a seleção do arquivo
         file_frame.on("select", function () {
