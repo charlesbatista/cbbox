@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Definir as configurações da mídia
         const file_frame = new wp.media({
-          title: "Selecione ou envie um novo relatório",
+          title: "Selecione ou envie um novo arquivo",
           button: {
-            text: "Selecionar este relatório",
+            text: "Utilizar este arquivo",
           },
           multiple: false,
         });
