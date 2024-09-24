@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.7.0
+ * @version 1.7.1
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.7.0';
+	private $versao = '1.7.1';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -44,6 +44,48 @@ class CBBox extends CBBox_Helpers {
 	 * @var array
 	 */
 	private array $meta_boxes_erros = [];
+
+	/**
+	 * Array com os formatos e os mime-types correspondentes.
+	 * 
+	 * Usados principalmente para permitir a escolha de formatos validos para os campos
+	 * de anexo de arquivos.
+	 *
+	 * @var array
+	 */
+	private array $mime_types = [
+		'pdf'   => 'application/pdf',
+		'doc'   => 'application/msword',
+		'docx'  => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		'xls'   => 'application/vnd.ms-excel',
+		'xlsx'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		'ppt'   => 'application/vnd.ms-powerpoint',
+		'pptx'  => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+		'odt'   => 'application/vnd.oasis.opendocument.text',
+		'ods'   => 'application/vnd.oasis.opendocument.spreadsheet',
+		'odp'   => 'application/vnd.oasis.opendocument.presentation',
+		'txt'   => 'text/plain',
+		'rtf'   => 'application/rtf',
+		'csv'   => 'text/csv',
+		'html'  => 'text/html',
+		'htm'   => 'text/html',
+		'jpg'   => 'image/jpeg',
+		'jpeg'  => 'image/jpeg',
+		'png'   => 'image/png',
+		'gif'   => 'image/gif',
+		'bmp'   => 'image/bmp',
+		'tif'   => 'image/tiff',
+		'tiff'  => 'image/tiff',
+		'zip'   => 'application/zip',
+		'rar'   => 'application/x-rar-compressed',
+		'7z'    => 'application/x-7z-compressed',
+		'mp3'   => 'audio/mpeg',
+		'wav'   => 'audio/x-wav',
+		'mp4'   => 'video/mp4',
+		'mov'   => 'video/quicktime',
+		'wmv'   => 'video/x-ms-wmv',
+		'flv'   => 'video/x-flv'
+	];
 
 	/**
 	 * Construtor da classe.
@@ -1065,8 +1107,18 @@ class CBBox extends CBBox_Helpers {
 	private function renderiza_campo_wp_media($campo, $valor, $atributos, ?string $grupo_id) {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
 
+		if (!empty($campo["formatos"]) && is_array($campo["formatos"])) {
+			$mime_types = array_map(function ($formato) {
+				return $this->mime_types[$formato];
+			}, $campo["formatos"]);
+
+			$data_formatos_validos = ' data-formatos-validos="' . implode(', ', $mime_types) . '"';
+		} else {
+			$data_formatos_validos = "";
+		}
+
 		$wp_media = '<p><input type="text" id="' . $nome_campo . '_url" name="' . $nome_campo  . '_url" value="' . $valor["url"] . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
-		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia">';
+		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
 		$wp_media .=  ' Selecionar ou enviar anexo';
 		$wp_media .=  '</button></p>';
