@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.3.3
+ * @version 1.6.7
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.3.3';
+	private $versao = '1.6.7';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -230,7 +230,7 @@ class CBBox extends CBBox_Helpers {
 					}
 
 					// recebe o valor do formulário
-					$valor = $_POST[$campo_nome_completo] ?? '';
+					$valor = $_POST[$campo_nome_completo] ?? null;
 
 					// salva o valor do campo num transient para permanecer o valor 
 					// que o usuário enviou caso haja falha na validação.
@@ -936,6 +936,11 @@ class CBBox extends CBBox_Helpers {
 		// exibimos uma descrição para o campo caso tenha sido configurada
 		if (isset($campo["descricao"])) {
 			$fieldset .=  '<p class="descricao">' . $campo["descricao"] . '</p>';
+		}
+
+		// quando um campo for "wp_media", insere o sufixo relacionado ao tipo de enviar mídia
+		if ($campo["tipo"] === 'wp_media') {
+			$campo["name"] = $campo["name"] . "_url";
 		}
 
 		// exibimos o erro do campo caso não tenha passado na validação

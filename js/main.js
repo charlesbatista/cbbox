@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .first()
             .toJSON();
 
-          console.log(attachment);
           const fieldsetMedia = campo.closest("fieldset");
           const inputUrl = fieldsetMedia.querySelector('input[id$="_url"]');
           const inputId = fieldsetMedia.querySelector(
