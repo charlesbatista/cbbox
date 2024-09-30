@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.7.3
+ * @version 1.7.4
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.7.3';
+	private $versao = '1.7.4';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -1089,7 +1089,7 @@ class CBBox extends CBBox_Helpers {
 	 * 
 	 * @return string
 	 */
-	private function renderiza_campo_textarea($campo, $valor = "", $atributos = "", ?string $grupo_id) {
+	private function renderiza_campo_textarea($campo, $valor = "", $atributos = "", ?string $grupo_id = "") {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
 		return '<textarea id="' . $nome_campo . '" name="' . $nome_campo . '" ' . $atributos . '>' . htmlentities($valor ?? "") . '</textarea>';
 	}
