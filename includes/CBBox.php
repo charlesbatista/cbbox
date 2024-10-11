@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.7.4
+ * @version 1.7.5
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.7.4';
+	private $versao = '1.7.5';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -149,7 +149,7 @@ class CBBox extends CBBox_Helpers {
 		foreach ($this->meta_boxes as &$meta_box) {
 			// Verifica se o nonce é válido e se os campos personalizados são válidos.
 			// O nonce ajuda a proteger contra ataques CSRF garantindo que a requisição veio do site e do usuário esperado.
-			if (!$this->verifica_nonce_valido($meta_box["id"])) {
+			if (!$this->verifica_nonce_valido($meta_box["id"], $post_id)) {
 				$this->meta_boxes_erros[] = "nonce_invalido";  // Adiciona erro de nonce inválido ao registro de erros.
 			} else {
 				// Se o nonce é válido, procede para validar os campos personalizados.
@@ -206,7 +206,7 @@ class CBBox extends CBBox_Helpers {
 			foreach ($this->meta_boxes as &$meta_box) {
 				// Verifica o nonce e valida os campos. 
 				// Se falhar, interrompe a validação e ajusta o flag.
-				if (!$this->verifica_nonce_valido($meta_box["id"]) || !$this->valida_campos_personalizados($postarr["ID"], $meta_box["id"], $meta_box["campos"])) {
+				if (!$this->verifica_nonce_valido($meta_box["id"], $postarr["ID"]) || !$this->valida_campos_personalizados($postarr["ID"], $meta_box["id"], $meta_box["campos"])) {
 					$validado = false;
 					break; // Interrompe o loop ao encontrar o primeiro erro.
 				}
@@ -751,14 +751,21 @@ class CBBox extends CBBox_Helpers {
 	 * Este método é usado para garantir que a requisição ao servidor foi intencionada pelo usuário
 	 * e veio de uma fonte confiável dentro da mesma sessão, prevenindo ataques CSRF.
 	 *
-	 * @param string $meta_box_id O identificador da meta box, usado para construir o nome do nonce.
-	 * @return bool Retorna verdadeiro se o nonce é válido e presente na requisição, falso caso contrário.
+	 * @param string $meta_box_id 	O identificador da meta box, usado para construir o nome do nonce.
+	 * @param int $post_id 			O ID do post que está sendo editado, usado para garantir unicidade do nonce.
+	 * @return bool 				Retorna verdadeiro se o nonce é válido e presente na requisição, falso caso contrário.
 	 * 
 	 * Uso:
 	 * Se este método retornar falso, a operação que depende da validação do nonce
 	 * deverá ser abortada para manter a segurança da aplicação.
 	 */
-	private function verifica_nonce_valido(string $meta_box_id) {
+	private function verifica_nonce_valido(string $meta_box_id, int $post_id) {
+		// Verifica se a ação é de restauração de um post
+		// Se sim, não precisamos validar o nonce.
+		if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'restore') {
+			return true;
+		}
+
 		// Verifica se o "nonce" de validação da requisição existe.
 		if (!isset($_POST[$meta_box_id . '_nonce'])) {
 			return false;
@@ -1259,6 +1266,7 @@ class CBBox extends CBBox_Helpers {
 	public function enqueue_scripts() {
 		if ($this->se_tela_plugin()) {
 			wp_enqueue_script('cbbox-main-script', $this->obtem_url_completa_assets('js/main.js'), array(), $this->versao, true);
+			wp_deregister_script('autosave');
 		}
 	}
 
