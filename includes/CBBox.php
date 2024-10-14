@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.7.5
+ * @version 1.8.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.7.5';
+	private $versao = '1.8.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -44,6 +44,8 @@ class CBBox extends CBBox_Helpers {
 	 * @var array
 	 */
 	private array $meta_boxes_erros = [];
+
+	private array $meta_boxes_erros_campos = [];
 
 	/**
 	 * Array com os formatos e os mime-types correspondentes.
@@ -100,7 +102,7 @@ class CBBox extends CBBox_Helpers {
 		if (is_admin()) {
 			add_action('add_meta_boxes', [$this, 'gera_meta_boxes'], 10, 2);
 			add_action("save_post_{$this->pagina_id}", [$this, 'salva_valores_meta_boxes']);
-			add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 2);
+			add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 3);
 
 			add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
 			add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -192,7 +194,7 @@ class CBBox extends CBBox_Helpers {
 	 * - Valida cada meta box: se qualquer uma falhar na validação, o post é definido como 'draft'.
 	 * - Se todas as validações passarem, o post é definido como 'publish'.
 	 */
-	public function ajusta_status_post($data, $postarr) {
+	public function ajusta_status_post($data, $postarr, $unsanitized_postarr) {
 		// Verifica se a requisição é válida para evitar processar em situações não desejadas.
 		if ($this->verifica_requisicao_valida() === false) {
 			return $data;  // Retorna os dados sem alterações se a requisição não for válida.
@@ -237,16 +239,14 @@ class CBBox extends CBBox_Helpers {
 	 * @return bool						Retorna true se nenhum erro foi encontrado, false caso contrário.
 	 */
 	private function valida_campos_personalizados(int|null $post_id, string $meta_box_id, array &$campos) {
-		$erros = [];
-
 		// Atribui um timestamp como ID do post se o ID original for nulo, garantindo um identificador único.
 		$post_id = $post_id ?? time();
 
 		// Chama o método recursivo para validar todos os campos e subcampos.
-		$this->valida_campos_recursivamente($post_id, $campos, $erros);
+		$this->valida_campos_recursivamente($post_id, $campos);
 
 		// Verifica e salva os erros encontrados, retornando o resultado da operação.
-		return $this->verificar_e_salvar_erros($erros, $post_id, $meta_box_id);
+		return $this->verificar_e_salvar_erros($post_id, $meta_box_id);
 	}
 
 	/**
@@ -258,10 +258,9 @@ class CBBox extends CBBox_Helpers {
 	 * 
 	 * @param int 		$post_id 	O ID do post que está sendo validado, usado para gerenciar valores temporários.
 	 * @param array 	&$campos 	Array de campos e/ou grupos de campos a serem validados.
-	 * @param array 	&$erros 	Array referenciado para acumular os erros encontrados durante a validação.
 	 * @param string 	$prefixo 	Prefixo acumulado para nomes de campos dentro de grupos, usado para formar o nome completo do campo.
 	 */
-	private function valida_campos_recursivamente(int $post_id, array &$campos, &$erros, $prefixo = '') {
+	private function valida_campos_recursivamente(int $post_id, array &$campos, $prefixo = '') {
 		if (!empty($campos)) {
 			foreach ($campos as $campo) {
 				if (!empty($campo["name"])) {
@@ -280,18 +279,18 @@ class CBBox extends CBBox_Helpers {
 
 					// Verifica se o campo é obrigatório e se está vazio
 					if (!empty($campo["atributos"]["required"]) && empty($valor)) {
-						$erros[$campo_nome_completo] = $campo["label"] . ' é um campo obrigatório.';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = $campo["label"] . ' é um campo obrigatório.';
 					}
 
 					// Processamento de validações específicas
 					if (!empty($campo["validacao"]) && is_array($campo["validacao"])) {
-						$this->aplica_validacoes($post_id, $campos, $campo, $valor, $erros, $campo_nome_completo);
+						$this->aplica_validacoes($post_id, $campos, $campo, $valor, $campo_nome_completo);
 					}
 
 					// Se o campo é um grupo, recursivamente valida seus subcampos
 					if (isset($campo['tipo']) && $campo['tipo'] === 'grupo' && isset($campo['campos'])) {
 						$novo_prefixo = $campo_nome_completo . '_';
-						$this->valida_campos_recursivamente($post_id, $campo['campos'], $erros, $novo_prefixo);
+						$this->valida_campos_recursivamente($post_id, $campo['campos'], $novo_prefixo);
 					}
 				}
 			}
@@ -309,10 +308,9 @@ class CBBox extends CBBox_Helpers {
 	 * @param array 	&$campos 				Array contendo todos os campos.
 	 * @param array 	$campo 					Dados do campo que incluem nome, tipo e outras configurações específicas.
 	 * @param mixed 	$valor 					Valor atual do campo obtido a partir do formulário.
-	 * @param array 	&$erros 				Referência ao array que armazena todos os erros de validação encontrados.
 	 * @param string 	$campo_nome_completo 	Nome completo do campo, incluindo prefixos de grupos para identificação única.
 	 */
-	private function aplica_validacoes(int $post_id, array &$campos, array $campo, $valor, &$erros, $campo_nome_completo) {
+	private function aplica_validacoes(int $post_id, array &$campos, array $campo, $valor, $campo_nome_completo) {
 		foreach ($campo["validacao"] as $tipo) {
 			if (strpos($tipo, ':') !== false) {
 				list($validacao, $parametros) = explode(':', $tipo, 2);
@@ -324,13 +322,13 @@ class CBBox extends CBBox_Helpers {
 			switch ($validacao) {
 				case 'cpf':
 					if (!empty($valor) && !$this->valida_cpf($valor)) {
-						$erros[$campo_nome_completo] = 'O CPF informado é inválido.';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CPF informado é inválido.';
 					}
 					break;
 
 				case 'cnpj':
 					if (!empty($valor) && !$this->valida_cnpj($valor)) {
-						$erros[$campo_nome_completo] = 'O CNPJ informado é inválido.';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CNPJ informado é inválido.';
 					}
 					break;
 
@@ -339,7 +337,7 @@ class CBBox extends CBBox_Helpers {
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
 					if (!empty($valor) && !$this->valida_data($valor, $formato)) {
-						$erros[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (' . $formato . ').';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (' . $formato . ').';
 					}
 					break;
 
@@ -348,7 +346,7 @@ class CBBox extends CBBox_Helpers {
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
 					if (!empty($valor) && $this->data_maior_que_hoje($valor, $formato)) {
-						$erros[$campo_nome_completo] = 'A data não pode ser maior que a data de hoje.';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data não pode ser maior que a data de hoje.';
 					}
 					break;
 
@@ -365,7 +363,7 @@ class CBBox extends CBBox_Helpers {
 								// aplica o erro a todos os campos relacionados que estão preenchidos
 								foreach ($campos_relacionados as $campo_relacionado) {
 									if (!empty($_POST[$campo_relacionado])) {
-										$erros[$campo_relacionado] = $texto_erro_valicadao;
+										$this->meta_boxes_erros_campos[$campo_relacionado] = $texto_erro_valicadao;
 									}
 								}
 							}
@@ -379,7 +377,7 @@ class CBBox extends CBBox_Helpers {
 
 					// Valida se o campo não está vazio e se a URL é inválida
 					if (!empty($valor) && !filter_var($valor, $tipo_url)) {
-						$erros[$campo_nome_completo] = 'A URL fornecida é inválida.';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL fornecida é inválida.';
 					}
 					break;
 
@@ -396,7 +394,7 @@ class CBBox extends CBBox_Helpers {
 
 						// aplica o erro a todos os campos relacionados
 						foreach ($campos_relacionados as $campo_relacionado) {
-							$erros[$campo_relacionado] = $texto_erro_valicadao;
+							$this->meta_boxes_erros_campos[$campo_relacionado] = $texto_erro_valicadao;
 						}
 					}
 					break;
@@ -412,10 +410,9 @@ class CBBox extends CBBox_Helpers {
 	 * @param mixed 	$valor 					Valor atual do campo que está sendo validado.
 	 * @param mixed 	$parametro_comparacao 	Pode ser o nome de outro campo ou um valor fixo para comparação.
 	 * @param string 	$campo_nome_completo 	Nome completo do campo para identificação em mensagens de erro.
-	 * @param array 	&$erros 				Referência ao array que armazena todos os erros de validação encontrados.
 	 * @return array 							Retorna um array de erros, possivelmente vazio se não houver erros.
 	 */
-	protected function verifica_maior_ou_igual(int $post_id, array &$campos, mixed $valor, mixed $parametro_comparacao, string $campo_nome_completo, &$erros) {
+	protected function verifica_maior_ou_igual(int $post_id, array &$campos, mixed $valor, mixed $parametro_comparacao, string $campo_nome_completo) {
 		// Verifica se o valor é null ou uma string vazia
 		if ($valor === null || $valor === '') {
 			return;
@@ -434,30 +431,30 @@ class CBBox extends CBBox_Helpers {
 			if ($this->valida_data($valor) && $this->valida_data($valor_campo_comparado)) {
 				// Se datas, vamos compará-las
 				if ($this->compara_datas($valor, $valor_campo_comparado) === -1) {
-					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
+					$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
 				}
 			} elseif (is_numeric($valor) && is_numeric($valor_campo_comparado)) {
 				// Se números, vamos compará-los
 				if ($valor < $valor_campo_comparado) {
-					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
+					$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O valor deve ser maior ou igual ao valor do campo <b>' . $campos[$indice]["label"] . '</b>: ' . $valor_campo_comparado . '.';
 				}
 			} else {
-				$erros[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
+				$this->meta_boxes_erros_campos[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
 			}
 		} else {
 			// Não encontrou o nome do campo, considera que é um valor fixo.
 			if ($this->valida_data($valor) && $this->valida_data($parametro_comparacao)) {
 				// Se datas, vamos compará-las
 				if ($this->compara_datas($valor, $parametro_comparacao) === -1) {
-					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
+					$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
 				}
 			} elseif (is_numeric($valor) && is_numeric($parametro_comparacao)) {
 				// Se números, vamos compará-los
 				if ($valor < $parametro_comparacao) {
-					$erros[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
+					$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O valor deve ser maior ou igual a ' . $parametro_comparacao . '.';
 				}
 			} else {
-				$erros[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
+				$this->meta_boxes_erros_campos[$campo_nome_completo] = 'Os valores a serem comparados devem ser do mesmo tipo (data ou número).';
 			}
 		}
 	}
@@ -471,19 +468,28 @@ class CBBox extends CBBox_Helpers {
 	 * banco de dados do WordPress. O transient tem uma duração de 60 segundos, após o qual 
 	 * expira automaticamente.
 	 *
-	 * @param array 	$erros 			Array contendo mensagens de erro. Cada item do array representa um erro específico encontrado durante o processo.
-	 * @param int 		$post_id 		O ID do post no qual os erros foram verificados. Isso ajuda a identificar e associar os erros ao contexto correto dentro do WordPress.
 	 * @param string 	$meta_box_id 	O ID do meta box relacionado, utilizado para construir o identificador único do transient.
 	 * @return bool 					Retorna false se erros foram encontrados e salvos no transient, ou true se nenhum erro foi encontrado, indicando que o processo pode continuar.
 	 */
-	protected function verificar_e_salvar_erros($erros, $post_id, $meta_box_id) {
-		if (!empty($erros)) {
+	protected function verificar_e_salvar_erros($post_id, $meta_box_id) {
+		if (!empty($this->meta_boxes_erros_campos)) {
 			$transient = join('_', [$meta_box_id, $post_id]);
-			set_transient($transient, $erros, 60); // Dura 60 segundos
+			set_transient($transient, $this->meta_boxes_erros_campos, 60); // Dura 60 segundos
 			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Adiciona um erro de validação a um campo específico de um meta box.
+	 *
+	 * @param string $campo_nome
+	 * @param string $mensagem
+	 * @return void
+	 */
+	public function adicionar_mensagem_erro(string $campo_nome, string $mensagem) {
+		$this->meta_boxes_erros_campos[$campo_nome] = $mensagem;
 	}
 
 	/**
