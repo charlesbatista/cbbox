@@ -217,8 +217,6 @@ class CBBox extends CBBox_Helpers {
 			// Define o status do post baseado na validação.
 			if (!$validado) {
 				$data['post_status'] = 'draft';  // Se houver erro, o post vai para rascunho.
-			} else {
-				$data['post_status'] = 'publish';  // Se tudo estiver correto, o post é publicado.
 			}
 		}
 
