@@ -102,7 +102,7 @@ class CBBox extends CBBox_Helpers {
 		if (is_admin()) {
 			add_action('add_meta_boxes', [$this, 'gera_meta_boxes'], 10, 2);
 			add_action("save_post_{$this->pagina_id}", [$this, 'salva_valores_meta_boxes']);
-			add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 3);
+			add_filter("wp_insert_post_data", [$this, 'ajusta_status_post'], 10, 4);
 
 			add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
 			add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -157,10 +157,10 @@ class CBBox extends CBBox_Helpers {
 				// Se o nonce é válido, procede para validar os campos personalizados.
 				if (!$this->valida_campos_personalizados($post_id, $meta_box["id"], $meta_box["campos"])) {
 					$this->meta_boxes_erros[] = "erro_de_validacao";  // Adiciona erro de validação de campos ao registro de erros.
-				} else {
-					// Se não houver erro de validação dos campos, salva os valores dos campos personalizados.
-					call_user_func([$this, 'salva_valores'], $post_id, $meta_box["id"], $meta_box["campos"]);
 				}
+
+				// salva os valores dos campos que não tiveram erro na validação
+				call_user_func([$this, 'salva_valores'], $post_id, $meta_box["id"], $meta_box["campos"]);
 			}
 		}
 
@@ -179,29 +179,26 @@ class CBBox extends CBBox_Helpers {
 	}
 
 	/**
-	 * Ajusta o status do post baseado na validação de todos os campos de meta boxes antes de salvar no banco de dados.
+	 * Ajusta o status de um post com base na validação dos campos personalizados.
 	 *
-	 * Este método é chamado no filtro `wp_insert_post_data` e determina se o post deve ser publicado ou revertido para rascunho
-	 * com base na validação dos campos personalizados de todas as meta boxes associadas ao tipo de post 'licitantes-sancoes'.
+	 * Este método é um filtro que é chamado antes de um post ser salvo, permitindo ajustar
+	 * o status do post com base na validação dos campos personalizados. Se a validação falhar,
+	 * o post é definido como rascunho para evitar a publicação de dados inválidos.
 	 *
-	 * @param array 	$data 		Array de dados do post que está prestes a ser salvo no banco de dados.
-	 * @param array 	$postarr 	Array contendo informações do post, incluindo ID e outros dados relevantes.
-	 * @return array 				O array de dados modificado com o status do post ajustado conforme a validação.
-	 * 
-	 * Fluxo:
-	 * - Verifica se a requisição é válida.
-	 * - Verifica se o tipo de post é da seção correta.
-	 * - Valida cada meta box: se qualquer uma falhar na validação, o post é definido como 'draft'.
-	 * - Se todas as validações passarem, o post é definido como 'publish'.
+	 * @param array 	$data 				Array de dados do post a serem salvos.
+	 * @param array 	$postarr 			Array de dados do post original.
+	 * @param array 	$unsanitized_postarr Array de dados do post não sanitizados.
+	 * @param bool 		$update 			Flag indicando se o post está sendo atualizado.
+	 * @return array 						Array de dados ajustados para o post.
 	 */
-	public function ajusta_status_post($data, $postarr, $unsanitized_postarr) {
+	public function ajusta_status_post(array $data, array $postarr, array $unsanitized_postarr, bool $update) {
 		// Verifica se a requisição é válida para evitar processar em situações não desejadas.
 		if ($this->verifica_requisicao_valida() === false) {
-			return $data;  // Retorna os dados sem alterações se a requisição não for válida.
+			return $data; // Retorna os dados sem alterações se a requisição não for válida.
 		}
 
-		// Verifica se o tipo de post é o esperado para esta validação.
-		if ($data['post_type'] === $this->pagina_id) {
+		// Verifica se o tipo de post é o esperado para esta validação e se o post está sendo atualizado.
+		if ($data['post_type'] === $this->pagina_id && $update) {
 			$validado = true;
 
 			// Itera sobre cada meta box para verificar sua validade.
@@ -526,10 +523,16 @@ class CBBox extends CBBox_Helpers {
 				if ($campo['tipo'] === 'grupo' && isset($campo['campos'])) {
 					// Processa cada campo dentro do grupo
 					foreach ($campo['campos'] as $subcampo) {
-						$this->salva_campo($post_id, $subcampo, $campo['name'] . '_');
+						$campo_nome_completo = $campo['name'] . '_' . $subcampo['name'];
+						if (!isset($this->meta_boxes_erros_campos[$campo_nome_completo])) {
+							$this->salva_campo($post_id, $subcampo, $campo['name'] . '_');
+						}
 					}
 				} else {
-					$this->salva_campo($post_id, $campo);
+					$campo_nome_completo = $campo['name'];
+					if (!isset($this->meta_boxes_erros_campos[$campo_nome_completo])) {
+						$this->salva_campo($post_id, $campo);
+					}
 				}
 			}
 		}
@@ -801,19 +804,23 @@ class CBBox extends CBBox_Helpers {
 	private function verifica_requisicao_valida() {
 		// Verifica se está sendo realizado um autosave.
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+			error_log(print_r('DOING_AUTOSAVE', true));
 			return false;
 		}
 
 		// Verifica se a requisição é AJAX.
 		if (defined('DOING_AJAX') && DOING_AJAX) {
+			error_log(print_r('DOING_AJAX', true));
 			return false;
 		}
 
 		// Verifica se a ação é enviar para lixeira ou retirar.
 		if (isset($_REQUEST['action']) && ($_REQUEST['action'] === 'trash' || $_REQUEST['action'] === 'untrash')) {
+			error_log(print_r('LIXEIRA', true));
 			return false;
 		}
 
+		error_log(print_r('PASSEI', true));
 		return true;
 	}
 
