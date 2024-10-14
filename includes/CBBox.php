@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.8.2
+ * @version 1.8.3
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.8.2';
+	private $versao = '1.8.3';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -804,23 +804,19 @@ class CBBox extends CBBox_Helpers {
 	private function verifica_requisicao_valida() {
 		// Verifica se está sendo realizado um autosave.
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-			error_log(print_r('DOING_AUTOSAVE', true));
 			return false;
 		}
 
 		// Verifica se a requisição é AJAX.
 		if (defined('DOING_AJAX') && DOING_AJAX) {
-			error_log(print_r('DOING_AJAX', true));
 			return false;
 		}
 
 		// Verifica se a ação é enviar para lixeira ou retirar.
 		if (isset($_REQUEST['action']) && ($_REQUEST['action'] === 'trash' || $_REQUEST['action'] === 'untrash')) {
-			error_log(print_r('LIXEIRA', true));
 			return false;
 		}
 
-		error_log(print_r('PASSEI', true));
 		return true;
 	}
 
