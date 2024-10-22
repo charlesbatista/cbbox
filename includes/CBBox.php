@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.8.5
+ * @version 1.9.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.8.5';
+	private $versao = '1.9.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -278,7 +278,7 @@ class CBBox extends CBBox_Helpers {
 					}
 
 					// recebe o valor do formulário
-					$valor = $_POST[$campo_nome_completo] ?? null;
+					$valor = isset($_POST[$campo_nome_completo]) ? $_POST[$campo_nome_completo] : null;
 
 					// salva o valor do campo num transient para permanecer o valor 
 					// que o usuário enviou caso haja falha na validação.
@@ -379,17 +379,14 @@ class CBBox extends CBBox_Helpers {
 					break;
 
 				case 'url':
-					// Define um parâmetro para o tipo de URL que espera ser validado, padrão para qualquer URL.
-					$tipo_url = !isset($parametros) ? FILTER_VALIDATE_URL : $parametros;
-
 					// Valida se o campo não está vazio e se a URL é inválida
-					if (!empty($valor) && !filter_var($valor, $tipo_url)) {
-						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL fornecida é inválida.';
+					if (!empty($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL (' . $valor . ') fornecida é inválida.';
 					}
 					break;
 
 				case 'maior_ou_igual':
-					$this->verifica_maior_ou_igual($post_id, $campos, $valor, $parametros, $campo_nome_completo, $erros);
+					$this->verifica_maior_ou_igual($post_id, $campos, $valor, $parametros, $campo_nome_completo);
 					break;
 
 				case 'obrigatorio_se_vazio':
@@ -723,7 +720,7 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		// atualizamos o valor na referência do campo
-		$campo['valor'] = $valor_campo;
+		$campo['valor'] = sanitize_text_field($valor_campo);
 
 		// retorna o valor do campo formatado
 		return $valor_campo;
@@ -971,7 +968,7 @@ class CBBox extends CBBox_Helpers {
 		$atributos = $this->obtem_atributos_campo($campo, $css_class);
 
 		// define o valor do campo de acordo com o valor passado pelos parâmetros
-		$valor = $campo["valor"] ?? null;
+		$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
 
 		// inicia o fieldset
 		$fieldset = '<fieldset id="campo-' . (isset($grupo_id) ? $grupo_id . '-' : null) . $campo["name"] . '">';
@@ -992,6 +989,9 @@ class CBBox extends CBBox_Helpers {
 				break;
 			case 'wp_media':
 				$fieldset .= $this->renderiza_campo_wp_media($campo, $valor, $atributos, $grupo_id);
+				break;
+			case 'wp_editor':
+				$fieldset .= $this->renderiza_campo_wp_editor($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'select':
 				$fieldset .= $this->renderiza_campo_select($campo, $valor, $atributos, $grupo_id);
@@ -1071,7 +1071,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function renderiza_campo_texto(array $campo, $valor, string $atributos, ?string $grupo_id) {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
-		return '<input type="text" id="' . $nome_campo . '" name="' . $nome_campo . '" value="' . $valor . '" ' . $atributos . '>';
+		return '<input type="text" id="' . esc_attr($nome_campo) . '" name="' . esc_attr($nome_campo) . '" value="' . esc_attr($valor) . '" ' . $atributos . '>';
 	}
 
 	/**
@@ -1087,7 +1087,7 @@ class CBBox extends CBBox_Helpers {
 	private function renderiza_campo_data(array $campo, $valor, string $atributos, ?string $grupo_id) {
 		$formato    = !empty($campo["formato"]) ? $campo["formato"] : 'd/m/Y';
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
-		return '<input type="date" id="' . $nome_campo . '" format="' . $formato  . '" name="' . $nome_campo . '" value="' . $valor . '" ' . $atributos . '>';
+		return '<input type="date" id="' . esc_attr($nome_campo) . '" name="' . esc_attr($nome_campo) . '" format="' . $formato  . '"  value="' . esc_attr($valor) . '" ' . $atributos . '>';
 	}
 
 	/**
@@ -1102,7 +1102,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function renderiza_campo_numero(array $campo, $valor, string $atributos, ?string $grupo_id) {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
-		return '<input type="number" id="' . $nome_campo . '" name="' . $nome_campo . '" value="' . $valor . '" ' . $atributos . '>';
+		return '<input type="number" id="' . esc_attr($nome_campo) . '" name="' . esc_attr($nome_campo) . '" value="' . esc_attr($valor) . '" ' . $atributos . '>';
 	}
 
 	/**
@@ -1117,7 +1117,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function renderiza_campo_textarea($campo, $valor = "", $atributos = "", ?string $grupo_id = "") {
 		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
-		return '<textarea id="' . $nome_campo . '" name="' . $nome_campo . '" ' . $atributos . '>' . htmlentities($valor ?? "") . '</textarea>';
+		return '<textarea id="' . esc_attr($nome_campo) . '" name="' . esc_attr($nome_campo) . '" ' . $atributos . '>' . htmlentities($valor ?? "") . '</textarea>';
 	}
 
 	/**
@@ -1143,12 +1143,43 @@ class CBBox extends CBBox_Helpers {
 			$data_formatos_validos = "";
 		}
 
-		$wp_media = '<p><input type="text" id="' . $nome_campo . '_url" name="' . $nome_campo  . '_url" value="' . $valor["url"] . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
+		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"]) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
 		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
 		$wp_media .=  ' Selecionar ou enviar anexo';
 		$wp_media .=  '</button></p>';
-		return $wp_media .= '<input type="hidden" id="' . $nome_campo  . '_id" name="' . $nome_campo  . '_id" value="' . $valor["id"] . '" readonly />';
+		return $wp_media .= '<input type="hidden" id="' . esc_attr($nome_campo)  . '_id" name="' . esc_attr($nome_campo)  . '_id" value="' . esc_attr($valor["id"]) . '" readonly />';
+	}
+
+	/**
+	 * Renderiza um campo do editor do WordPress.
+	 *
+	 * @param string $campo O nome do campo.
+	 * @param mixed $valor O valor do campo.
+	 * @param array $atributos Os atributos para o campo.
+	 * @param string|null $grupo_id O ID do grupo, se houver.
+	 *
+	 * @return void
+	 */
+	private function renderiza_campo_wp_editor($campo, $valor, $atributos, ?string $grupo_id) {
+		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
+		$editor_id  = $nome_campo;
+
+		// Configurações padrão do editor
+		$default_settings = [
+			'wpautop'          => true,
+			'media_buttons'    => true,
+			'drag_drop_upload' => true,
+			'textarea_rows'    => 10,
+			'teeny'            => true
+		];
+
+		// Mescla as configurações padrão com as configurações do campo
+		$settings = array_merge($default_settings, $campo["configuracoes"] ?? []);
+
+		ob_start();
+		wp_editor($valor, $editor_id, $settings);
+		return ob_get_clean();
 	}
 
 	/**
@@ -1164,7 +1195,7 @@ class CBBox extends CBBox_Helpers {
 	private function renderiza_campo_select(array $campo, $valor, string $atributos, ?string $grupo_id) {
 		$nome_campo  = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
 		$placeholder = !empty($campo['placeholder']) ? " placeholder='{$campo['placeholder']}'" : '';
-		$select      = "<select name='{$nome_campo}' {$placeholder} {$atributos}'>";
+		$select      = "<select name='" . esc_attr($nome_campo) . "' {$placeholder} {$atributos}'>";
 
 		if (!isset($campo["desativar-opcao-padrao"])) {
 			$select .= '<option value="" selected disabled>' . ($campo["placeholder"] ?? 'Selecione uma opção') . '</option>';
@@ -1190,12 +1221,12 @@ class CBBox extends CBBox_Helpers {
 				if (is_array($opcao)) {
 					// Array de arrays (ex: com 'valor' e 'texto')
 					$option_attributes = $this->obtem_atributos_campo($opcao, '');
-					$select .= '<option value="' . htmlspecialchars($opcao['valor']) . '" ' .
+					$select .= '<option value="' . esc_attr(htmlspecialchars($opcao['valor'])) . '" ' .
 						selected($valor, $opcao['valor'], false) . $option_attributes . '>' .
 						htmlspecialchars($opcao['texto']) . '</option>';
 				} else {
 					// Array associativo simples (ex: chave como 'valor' e 'texto')
-					$select .= '<option value="' . htmlspecialchars($key) . '" ' .
+					$select .= '<option value="' . esc_attr(htmlspecialchars($key)) . '" ' .
 						selected($valor, $key, false) . '>' .
 						htmlspecialchars($opcao) . '</option>';
 				}
