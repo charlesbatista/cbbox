@@ -32,10 +32,6 @@
     padding: 2rem 1.5rem
 }
 
-.form-table th {
-    vertical-align: middle;
-}
-
 .campo-formulario.grupo>td>fieldset {
     display: flex;
     flex-direction: column;
