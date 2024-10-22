@@ -1,3 +1,10 @@
+/* ----- Customização das meta boxes ----- */
+
+[id^="cbbox_"] .inside {
+    padding: 0;
+    margin: 0 !important;
+}
+
 /* ----- Campos dos formulários ------ */
 
 .form-table {
@@ -74,6 +81,11 @@
 .campo-formulario.valid:focus,
 .campo-formulario.valid {
     border-color: #86cb96;
+}
+
+.campo-formulario input[type=text]:disabled {
+    background-color: #f4f4f4;
+    color: #626262
 }
 
 fieldset:has(.cbbox-selecionar-midia) {

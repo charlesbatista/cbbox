@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.8.3
+ * @version 1.8.4
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.8.3';
+	private $versao = '1.8.4';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -34,6 +34,13 @@ class CBBox extends CBBox_Helpers {
 	private string $pagina_id;
 
 	/**
+	 * Prefixo padrão para os identificadores das meta boxes.
+	 * 
+	 * @var string
+	 */
+	private string $meta_box_prefixo = 'cbbox_';
+
+	/**
 	 * Transient com erros de validação do formulário de cada meta box
 	 */
 	private mixed $meta_box_erros = null;
@@ -45,6 +52,11 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private array $meta_boxes_erros = [];
 
+	/**
+	 * Array com erros de validação de campos específicos
+	 *
+	 * @var array
+	 */
 	private array $meta_boxes_erros_campos = [];
 
 	/**
@@ -118,7 +130,7 @@ class CBBox extends CBBox_Helpers {
 	public function gera_meta_boxes() {
 		// itera sobre o array de meta boxes para criar cada meta box
 		foreach ($this->meta_boxes as $meta_box) {
-			$this->adiciona_metabox($meta_box["id"], $meta_box["titulo"], 'meta_box', $this->pagina_id, [
+			$this->adiciona_metabox($this->meta_box_prefixo . $meta_box["id"], $meta_box["titulo"], 'meta_box', $this->pagina_id, [
 				'campos'  => $meta_box["campos"]
 			]);
 		}
@@ -151,16 +163,16 @@ class CBBox extends CBBox_Helpers {
 		foreach ($this->meta_boxes as &$meta_box) {
 			// Verifica se o nonce é válido e se os campos personalizados são válidos.
 			// O nonce ajuda a proteger contra ataques CSRF garantindo que a requisição veio do site e do usuário esperado.
-			if (!$this->verifica_nonce_valido($meta_box["id"], $post_id)) {
+			if (!$this->verifica_nonce_valido($this->meta_box_prefixo . $meta_box["id"], $post_id)) {
 				$this->meta_boxes_erros[] = "nonce_invalido";  // Adiciona erro de nonce inválido ao registro de erros.
 			} else {
 				// Se o nonce é válido, procede para validar os campos personalizados.
-				if (!$this->valida_campos_personalizados($post_id, $meta_box["id"], $meta_box["campos"])) {
+				if (!$this->valida_campos_personalizados($post_id, $this->meta_box_prefixo . $meta_box["id"], $meta_box["campos"])) {
 					$this->meta_boxes_erros[] = "erro_de_validacao";  // Adiciona erro de validação de campos ao registro de erros.
 				}
 
 				// salva os valores dos campos que não tiveram erro na validação
-				call_user_func([$this, 'salva_valores'], $post_id, $meta_box["id"], $meta_box["campos"]);
+				call_user_func([$this, 'salva_valores'], $post_id, $this->meta_box_prefixo . $meta_box["id"], $meta_box["campos"]);
 			}
 		}
 
