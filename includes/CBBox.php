@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.9.5
+ * @version 1.9.6
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.9.5';
+	private $versao = '1.9.6';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -217,7 +217,7 @@ class CBBox extends CBBox_Helpers {
 			foreach ($this->meta_boxes as &$meta_box) {
 				// Verifica o nonce e valida os campos. 
 				// Se falhar, interrompe a validação e ajusta o flag.
-				if (!$this->verifica_nonce_valido($meta_box["id"], $postarr["ID"]) || !$this->valida_campos_personalizados($postarr["ID"], $meta_box["id"], $meta_box["campos"])) {
+				if (!$this->verifica_nonce_valido($this->meta_box_prefixo . $meta_box["id"], $postarr["ID"]) || !$this->valida_campos_personalizados($postarr["ID"], $this->meta_box_prefixo . $meta_box["id"], $meta_box["campos"])) {
 					$validado = false;
 					break; // Interrompe o loop ao encontrar o primeiro erro.
 				}
@@ -225,6 +225,7 @@ class CBBox extends CBBox_Helpers {
 
 			// Define o status do post baseado na validação.
 			if (!$validado) {
+				error_log(print_r('irá como rascunho', true));
 				$data['post_status'] = 'draft';  // Se houver erro, o post vai para rascunho.
 			}
 		}
@@ -569,13 +570,14 @@ class CBBox extends CBBox_Helpers {
 				$this->mantem_valor_bd($post_id, $nome_campo, $valor_campo);
 			}
 		} else {
+			// define o nome completo do campo (com prefixo, se houver)
 			$campo_nome_completo = $prefixo_nome_campo . $campo["name"];
+
+			// verificamos se existe alguma configuração para formatar o formato de exibição
+			$valor_campo = $this->formata_valor_campo($campo, 'salvar', $campo_nome_completo);
+
+			$this->mantem_valor_bd($post_id, $campo_nome_completo, $valor_campo);
 		}
-
-		// verificamos se existe alguma configuração para formatar o formato de exibição
-		$valor_campo = $this->formata_valor_campo($campo, 'salvar', $campo_nome_completo);
-
-		$this->mantem_valor_bd($post_id, $campo_nome_completo, $valor_campo);
 	}
 
 	/**
@@ -1147,8 +1149,6 @@ class CBBox extends CBBox_Helpers {
 		} else {
 			$data_formatos_validos = "";
 		}
-
-		error_log(print_r($valor, true));
 
 		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"] ?? null) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
 		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
