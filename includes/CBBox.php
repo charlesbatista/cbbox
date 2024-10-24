@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.9.6
+ * @version 1.9.5
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.9.6';
+	private $versao = '1.9.5';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -225,7 +225,6 @@ class CBBox extends CBBox_Helpers {
 
 			// Define o status do post baseado na validação.
 			if (!$validado) {
-				error_log(print_r('irá como rascunho', true));
 				$data['post_status'] = 'draft';  // Se houver erro, o post vai para rascunho.
 			}
 		}
