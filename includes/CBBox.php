@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.9.2
+ * @version 1.9.4
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.9.2';
+	private $versao = '1.9.4';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -967,11 +967,16 @@ class CBBox extends CBBox_Helpers {
 		// podendo ser qualquer coisa, como atributos "data-" 
 		$atributos = $this->obtem_atributos_campo($campo, $css_class);
 
-		// define o valor do campo de acordo com o valor passado pelos parâmetros
-		$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
-
 		// inicia o fieldset
 		$fieldset = '<fieldset id="campo-' . (isset($grupo_id) ? $grupo_id . '-' : null) . $campo["name"] . '">';
+
+		// define o valor do campo de acordo com o valor passado pelos parâmetros
+		// se o tipo do campo for para envio de media, não vamos sanitizar nada.
+		if ($campo["tipo"] == 'wp_media') {
+			$valor = $campo["valor"] ?? [];
+		} else {
+			$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
+		}
 
 		// renderiza o campo específico de acordo com o seu tipo
 		switch ($campo["tipo"]) {
@@ -1143,12 +1148,14 @@ class CBBox extends CBBox_Helpers {
 			$data_formatos_validos = "";
 		}
 
-		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"]) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
+		error_log(print_r($valor, true));
+
+		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"] ?? null) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
 		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
 		$wp_media .=  ' Selecionar ou enviar anexo';
 		$wp_media .=  '</button></p>';
-		return $wp_media .= '<input type="hidden" id="' . esc_attr($nome_campo)  . '_id" name="' . esc_attr($nome_campo)  . '_id" value="' . esc_attr($valor["id"]) . '" readonly />';
+		return $wp_media .= '<input type="hidden" id="' . esc_attr($nome_campo)  . '_id" name="' . esc_attr($nome_campo)  . '_id" value="' . esc_attr($valor["id"] ?? null) . '" readonly />';
 	}
 
 	/**
