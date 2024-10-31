@@ -6,6 +6,46 @@ if (typeof autosave === "function") {
 
 // Associar o evento de clique ao botão "Selecionar Mídia"
 document.addEventListener("DOMContentLoaded", function () {
+  // para todos os inputs que possuem o atributo "maxlength" definido
+  // vamos adicionar um contador de caracteres e personalizar a mensagem usando 
+  // a função "setCustomValidity" do HTML5
+  document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(function (element) {
+    const maxlength = element.getAttribute('maxlength');
+
+    // Função para formatar a mensagem
+    function atualizarMensagemCaracteres(element) {
+      const caracteresRestantes = maxlength - element.value.length;
+      if (caracteresRestantes === 0) {
+        return `Você atingiu o limite de ${maxlength} caracteres.`;
+      }
+      return caracteresRestantes === 1
+        ? `Resta 1 caractere de ${maxlength}.`
+        : `Restam ${caracteresRestantes} caracteres de ${maxlength}.`;
+    }
+
+    // criamos um elemento span para exibir o contador de caracteres
+    const span = document.createElement('span');
+    span.className = 'contador-caracteres';
+    span.textContent = atualizarMensagemCaracteres(element); // Define o texto inicial
+
+    element.insertAdjacentElement('afterend', span);
+
+    // torna o elemento span visível ao clicar no element
+    element.addEventListener('focus', function () {
+      span.style.display = 'block';
+    });
+
+    // esconde o elemento span ao clicar fora do element
+    element.addEventListener('blur', function () {
+      span.style.display = 'none';
+    });
+
+    // Atualiza o contador de caracteres ao digitar no element
+    element.addEventListener('input', function () {
+      span.textContent = atualizarMensagemCaracteres(element);
+    });
+  });
+
   document
     .querySelectorAll(".cbbox-selecionar-midia")
     .forEach(function (button) {
