@@ -153,6 +153,17 @@
         text-align: left !important
     }
 
+    .contador-caracteres {
+        display: none;
+        background: #edf1f6;
+        padding: 10px 10px 5px;
+        border: 1px solid #bed7f7;
+        border-top: 0;
+        margin: -5px 4px 0;
+        color: #4f94d4;
+        border-radius: 4px;
+    }
+
 }
 
 /* ----- Loading ----- */
