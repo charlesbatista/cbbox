@@ -103,8 +103,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const fieldsetMedia = campo.closest("fieldset");
         const inputUrl = fieldsetMedia.querySelector('input[id$="_url"]');
         const inputId = fieldsetMedia.querySelector('input[id$="_id"]');
-        inputUrl.setAttribute('value', '');
-        inputId.setAttribute('value', '');
+
+        if (inputUrl) {
+          inputUrl.setAttribute('value', '');
+        }
+
+        if (inputId) {
+          inputId.setAttribute('value', '');
+        }
       });
     });
 });
