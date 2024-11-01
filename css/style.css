@@ -92,8 +92,31 @@
         gap: 0.5rem
     }
 
-    .cbbox-selecionar-midia .dashicons {
-        vertical-align: sub;
+    .botoes-acoes,
+    .botoes-acoes button {
+        display: flex;
+        gap: 0.5rem
+    }
+
+    .botoes-acoes button {
+        align-items: center;
+        gap: 0.25rem
+    }
+
+    .cbbox-remover-midia {
+        background-color: #d9534f;
+        /* vermelho padrão */
+        border-color: #d43f3a;
+        color: white;
+    }
+
+    .cbbox-remover-midia:hover,
+    .cbbox-remover-midia:focus,
+    .cbbox-remover-midia:active {
+        color: white;
+        background-color: #c9302c;
+        border-color: #ac2925;
+        box-shadow: none
     }
 
     .descricao {

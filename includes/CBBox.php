@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.10.1
+ * @version 1.11.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.10.1';
+	private $versao = '1.11.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -1150,10 +1150,19 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"] ?? null) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
-		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
+		$wp_media .= '<div class="botoes-acoes">';
+
+		$wp_media .= '<button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
-		$wp_media .=  ' Selecionar ou enviar anexo';
-		$wp_media .=  '</button></p>';
+		$wp_media .= 'Selecionar ou enviar anexo';
+		$wp_media .= '</button>';
+
+		$wp_media .= '<button type="button" class="button button-large cbbox-remover-midia">';
+		$wp_media .= '<span class="dashicons dashicons-no-alt"></span>';
+		$wp_media .= 'Remover';
+		$wp_media .= '</button>';
+
+		$wp_media .= '</div>';
 		return $wp_media .= '<input type="hidden" id="' . esc_attr($nome_campo)  . '_id" name="' . esc_attr($nome_campo)  . '_id" value="' . esc_attr($valor["id"] ?? null) . '" readonly />';
 	}
 

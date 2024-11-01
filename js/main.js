@@ -93,4 +93,18 @@ document.addEventListener("DOMContentLoaded", function () {
         file_frame.open();
       });
     });
+
+  // Associar o evento de clique ao botão "Remover Mídia"
+  document
+    .querySelectorAll(".cbbox-remover-midia")
+    .forEach(function (button) {
+      button.addEventListener("click", function () {
+        const campo = this;
+        const fieldsetMedia = campo.closest("fieldset");
+        const inputUrl = fieldsetMedia.querySelector('input[id$="_url"]');
+        const inputId = fieldsetMedia.querySelector('input[id$="_id"]');
+        inputUrl.setAttribute('value', '');
+        inputId.setAttribute('value', '');
+      });
+    });
 });
