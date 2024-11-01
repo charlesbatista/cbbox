@@ -85,8 +85,14 @@ document.addEventListener("DOMContentLoaded", function () {
           const inputId = fieldsetMedia.querySelector(
             'input[id$="_id"]'
           );
-          inputUrl.setAttribute('value', attachment.url);
-          inputId.setAttribute('value', attachment.id);
+
+          if (inputUrl) {
+            inputUrl.setAttribute('value', attachment.url);
+          }
+
+          if (inputId) {
+            inputId.setAttribute('value', attachment.id);
+          }
         });
 
         // Abrir o frame de seleção de arquivo
