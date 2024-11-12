@@ -92,6 +92,11 @@
         gap: 0.5rem
     }
 
+    legend {
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
     .botoes-acoes,
     .botoes-acoes button {
         display: flex;
