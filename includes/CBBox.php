@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.11.2
+ * @version 1.12.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.11.2';
+	private $versao = '1.12.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -379,10 +379,6 @@ class CBBox extends CBBox_Helpers {
 					break;
 
 				case 'url':
-					// Remover caracteres não imprimíveis e espaços extras
-					$valor = filter_var($valor, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_LOW);
-					$valor = trim($valor);
-
 					// Valida se o campo não está vazio e se a URL é inválida
 					if (!empty($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL (' . $valor . ') fornecida é inválida.';
@@ -394,16 +390,9 @@ class CBBox extends CBBox_Helpers {
 					break;
 
 				case 'obrigatorio_se_vazio':
-					// obtém o nome do campo relacionado com base no parâmetro enviado
-					// apenas renomeando para melhor entendimento.
-					$nome_campo_relacionado = $parametros;
-
-					// obtém o nome do campo completo (se houver sufixo, acrescenta)
-					$nome_campo_com_sufixo = $this->obtem_nome_campo_com_sufixo($parametros);
-
-					// verifica se o campo atual e o campo relacionado estão vazios
-					if (empty($valor) && empty($_POST[$nome_campo_com_sufixo])) {
-						$campos_relacionados       = [$campo_nome_completo, $nome_campo_relacionado];
+					$campo_relacionado = $parametros;
+					if (empty($valor) && empty($_POST[$campo_relacionado])) {
+						$campos_relacionados       = [$campo_nome_completo, $campo_relacionado];
 						$label_campos_relacionados = $this->obtem_labels_por_nomes($campos, $campos_relacionados);
 						$texto_erro_valicadao      = 'Pelo menos um dos campos (' . join(', ', $label_campos_relacionados) . ') deve ser preenchido.';
 
@@ -956,14 +945,7 @@ class CBBox extends CBBox_Helpers {
 		$label_obrigatorio = isset($campo["atributos"]["required"]) ? '*' : '';
 
 		$area_campo = '<tr class="campo-formulario ' . $campo["tipo"] . '">';
-		$area_campo .= '<th scope="row">' . $campo["label"] . $label_obrigatorio . ':';
-
-		// exibe a descrição do campo do tipo "grupo"
-		if ($campo["tipo"] === 'grupo') {
-			$area_campo .= '<p class="descricao" style="font-weight: 400">' . $campo["descricao"] . '</p>';
-		}
-
-		$area_campo .= '</th>';
+		$area_campo .= '<th scope="row">' . $campo["label"] . $label_obrigatorio . ':</th>';
 		$area_campo .= '<td>';
 		$area_campo .= $this->renderiza_fieldset($campo);
 		$area_campo .= '</td>';
@@ -989,14 +971,6 @@ class CBBox extends CBBox_Helpers {
 		// inicia o fieldset
 		$fieldset = '<fieldset id="campo-' . (isset($grupo_id) ? $grupo_id . '-' : null) . $campo["name"] . '">';
 
-		// se for um campo que está dentro de um grupo
-		if (isset($grupo_id)) {
-			// verifica se o campo é obrigatório e adiciona o "*" na frente:
-			$label_obrigatorio = isset($campo["atributos"]["required"]) ? '*' : '';
-
-			$fieldset .= '<legend>' . $campo["label"] . $label_obrigatorio . ':</legend>';
-		}
-
 		// define o valor do campo de acordo com o valor passado pelos parâmetros
 		// se o tipo do campo for para envio de media, não vamos sanitizar nada.
 		if ($campo["tipo"] == 'wp_media') {
@@ -1009,6 +983,9 @@ class CBBox extends CBBox_Helpers {
 		switch ($campo["tipo"]) {
 			case 'text':
 				$fieldset .= $this->renderiza_campo_texto($campo, $valor, $atributos, $grupo_id);
+				break;
+			case 'checkbox':
+				$fieldset .= $this->renderiza_campo_checkbox($campo, $valor, $atributos, $grupo_id);
 				break;
 			case 'date':
 				$fieldset .= $this->renderiza_campo_data($campo, $valor, $atributos, $grupo_id);
@@ -1034,7 +1011,7 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		// exibimos uma descrição para o campo caso tenha sido configurada
-		if (isset($campo["descricao"]) && $campo["tipo"] !== 'grupo') {
+		if (isset($campo["descricao"])) {
 			$fieldset .=  '<p class="descricao">' . $campo["descricao"] . '</p>';
 		}
 
@@ -1107,6 +1084,21 @@ class CBBox extends CBBox_Helpers {
 	}
 
 	/**
+	 * Renderiza um checkbox.
+	 *
+	 * @param array 	$campo 		Array associativo contendo as informações do campo.
+	 * @param mixed 	$valor 		Valor inicial do campo.
+	 * @param string 	$atributos 	Atributos adicionais do campo.
+	 * @param string 	$grupo_id  	ID do grupo do qual o campo faz parte.
+	 * 
+	 * @return string
+	 */
+	private function renderiza_campo_checkbox(array $campo, $valor, string $atributos, ?string $grupo_id) {
+		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
+		return '<input type="checkbox" id="' . $nome_campo . '" name="' . $nome_campo . '" value="' . $valor . '" ' . $atributos . '>';
+	}
+
+	/**
 	 * Renderiza um campo de data.
 	 *
 	 * @param array 	$campo 		Array associativo contendo as informações do campo.
@@ -1176,19 +1168,10 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		$wp_media = '<p><input type="text" id="' . esc_attr($nome_campo) . '_url" name="' . esc_attr($nome_campo)  . '_url" value="' . esc_attr($valor["url"] ?? null) . '" placeholder="Nenhum arquivo selecionado até o momento." readonly ' . $atributos . '></p>';
-		$wp_media .= '<div class="botoes-acoes">';
-
-		$wp_media .= '<button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
+		$wp_media .= '<p><button type="button" class="button button-primary button-large cbbox-selecionar-midia"' . $data_formatos_validos . '>';
 		$wp_media .= '<span class="dashicons dashicons-upload"></span>';
-		$wp_media .= 'Selecionar ou enviar anexo';
-		$wp_media .= '</button>';
-
-		$wp_media .= '<button type="button" class="button button-large cbbox-remover-midia">';
-		$wp_media .= '<span class="dashicons dashicons-no-alt"></span>';
-		$wp_media .= 'Remover';
-		$wp_media .= '</button>';
-
-		$wp_media .= '</div>';
+		$wp_media .=  ' Selecionar ou enviar anexo';
+		$wp_media .=  '</button></p>';
 		return $wp_media .= '<input type="hidden" id="' . esc_attr($nome_campo)  . '_id" name="' . esc_attr($nome_campo)  . '_id" value="' . esc_attr($valor["id"] ?? null) . '" readonly />';
 	}
 
@@ -1304,55 +1287,13 @@ class CBBox extends CBBox_Helpers {
 		$contador_preenchidos = 0; // Contador para campos preenchidos
 
 		foreach ($campos_relacionados as $campo_nome) {
-			$valor = $_POST[$this->obtem_nome_campo_com_sufixo($campo_nome)] ?? null;
-
-			// se o campo estiver preenchido, incrementa o contador
-			if (!empty($valor)) {
+			if (!empty($_POST[$campo_nome]) && trim($_POST[$campo_nome]) !== '') {
 				$contador_preenchidos++;
 			}
 		}
 
 		// Retorna true se exatamente um dos campos estiver preenchido
 		return $contador_preenchidos === 1;
-	}
-
-	/**
-	 * Obtém o nome do campo com sufixo.
-	 * 
-	 * Este método é utilizado para obter o nome do campo com um sufixo específico, que é
-	 * adicionado ao nome do campo original. O sufixo é utilizado para identificar campos
-	 * relacionados que devem ser validados juntos.
-	 * 
-	 * @param string $campo_nome O nome do campo original.
-	 * @return string O nome do campo com sufixo.
-	 */
-	private function obtem_nome_campo_com_sufixo(string $campo_nome) {
-		if (strpos($campo_nome, '|') !== false) {
-			$campo      = explode('|', $campo_nome);
-			$campo_nome = $campo[0] . '_' . $campo[1];
-		}
-
-		return $campo_nome;
-	}
-
-
-	/**
-	 * Obtém o nome do campo sem sufixo.
-	 * 
-	 * Este método é utilizado para obter o nome do campo sem um sufixo específico, que é
-	 * adicionado ao nome do campo original. O sufixo é utilizado para identificar campos
-	 * relacionados que devem ser validados juntos.
-	 * 
-	 * @param string $campo_nome O nome do campo original.
-	 * @return string O nome do campo sem sufixo.
-	 */
-	private function obtem_nome_campo_sem_sufixo(string $campo_nome) {
-		if (strpos($campo_nome, '|') !== false) {
-			$campo = explode('|', $campo_nome);
-			return $campo[0];
-		}
-
-		return $campo_nome;
 	}
 
 	/**
@@ -1370,8 +1311,6 @@ class CBBox extends CBBox_Helpers {
 	private function obtem_labels_por_nomes(array $todos_os_campos, array $nomes_de_campos) {
 		$labels = [];
 		foreach ($nomes_de_campos as $nome) {
-			// obtém o nome do campo sem sufixo para obter a label corretamente
-			$nome = $this->obtem_nome_campo_sem_sufixo($nome);
 			foreach ($todos_os_campos as $campo) {
 				if ($campo["name"] === $nome) {
 					$labels[] = $campo["label"];
