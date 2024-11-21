@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.12.0
+ * @version 1.13.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.12.0';
+	private $versao = '1.13.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -711,6 +711,11 @@ class CBBox extends CBBox_Helpers {
 				// Remove todos os caracteres não numéricos
 				$valor_campo = preg_replace('/\D/', '', $valor_campo);
 				break;
+			case is_string($formato) && $formato === 'sem_zeros_a_esquerda':
+				error_log(print_r("Valor original: " . $valor_campo, true));
+				$valor_campo = ltrim($valor_campo, '0');
+				error_log(print_r("Valor modificado: " . $valor_campo, true));
+				break;
 			case (is_array($formato) && isset($formato['decimal'])) || (is_string($formato) && $formato === 'decimal'):
 				$valor_campo = $this->formata_decimal($valor_campo, $formato['decimal'] ?? []);
 				break;
@@ -720,6 +725,7 @@ class CBBox extends CBBox_Helpers {
 				return $valor_campo;
 		}
 
+		error_log(print_r("Valor que será retornado: " . $valor_campo, true));
 		// atualizamos o valor na referência do campo
 		$campo['valor'] = sanitize_text_field($valor_campo);
 
@@ -828,6 +834,22 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Verifica se a requisição atual é de restauração de um post.
+	 *
+	 * Este método é utilizado para identificar se a ação atual é de restauração de um post
+	 * que foi movido para a lixeira, evitando a execução de lógicas de processamento de formulários
+	 * que não são necessárias nesse contexto.
+	 *
+	 * @return bool Retorna verdadeiro se a ação é de restauração de um post, falso caso contrário.
+	 */
+	private function verifica_se_restauracao() {
+		// Verifica se a ação é de restauração de um post
+		if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'restore') {
+			return false;
+		}
 	}
 
 	/**
