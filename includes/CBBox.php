@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.13.1
+ * @version 1.13.2
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.13.1';
+	private $versao = '1.13.2';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -285,7 +285,7 @@ class CBBox extends CBBox_Helpers {
 					set_transient(join('_', [$post_id, $campo_nome_completo]), $valor, 60);
 
 					// Verifica se o campo é obrigatório e se está vazio
-					if (!empty($campo["atributos"]["required"]) && empty($valor)) {
+					if (!empty($campo["atributos"]["required"]) && $campo["atributos"]["required"] === true && empty($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = $campo["label"] . ' é um campo obrigatório.';
 					}
 
@@ -961,7 +961,7 @@ class CBBox extends CBBox_Helpers {
 	 */
 	private function renderiza_campo($campo) {
 		// verifica se o campo é obrigatório e adiciona o "*" na frente:
-		$label_obrigatorio = isset($campo["atributos"]["required"]) ? '*' : '';
+		$label_obrigatorio = isset($campo["atributos"]["required"]) && $campo["atributos"]["required"] === true ? '*' : '';
 
 		$area_campo = '<tr class="campo-formulario ' . $campo["tipo"] . '">';
 		$area_campo .= '<th scope="row">' . $campo["label"] . $label_obrigatorio . ':</th>';
@@ -1060,16 +1060,31 @@ class CBBox extends CBBox_Helpers {
 		$atributos = '';
 		if (isset($campo["atributos"])) {
 			foreach ($campo["atributos"] as $key => $value) {
-				if ($value != "") {
-					$atributos .= ' ' . $key . '="' . $value . '"';
+				// Ignora atributos booleanos com valor falso
+				if (is_bool($value) && !$value) {
+					continue;
+				}
+
+				// Atributos booleanos como "required", "checked", etc., sem valor explícito
+				if (is_bool($value) && $value) {
+					$atributos .= " $key";
+					continue;
+				}
+
+				// Atributos com valor não vazio
+				if (!empty($value)) {
+					$atributos .= sprintf(' %s="%s"', $key, htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
 				} else {
-					$atributos .= ' ' . $key;
+					// Atributos sem valor explícito
+					$atributos .= " $key";
 				}
 			}
 		}
-		$atributos .= $css_class;
 
-		return $atributos;
+		// Adiciona classes CSS, se houver
+		$atributos .= $css_class ?? '';
+
+		return trim($atributos);
 	}
 
 	/**
