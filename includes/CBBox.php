@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.13.2
+ * @version 1.13.3
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.13.2';
+	private $versao = '1.13.3';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -279,6 +279,13 @@ class CBBox extends CBBox_Helpers {
 
 					// recebe o valor do formulário
 					$valor = isset($_POST[$campo_nome_completo]) ? trim($_POST[$campo_nome_completo]) : null;
+
+					// se o valor tiver sido preenchido e não for do tipo de data
+					// vamos tentar formatar o valor para o formato configurado.
+					if (!empty($valor) && isset($campo['formatos']['salvar']) && is_string($campo['formatos']['salvar']) && strpos($campo['formatos']['salvar'], 'data:') !== 0) {
+						// formata o valor do campo caso exista a configuração para tal
+						$valor = $this->formata_valor_campo($campo, 'exibir', $campo_nome_completo, $valor);
+					}
 
 					// salva o valor do campo num transient para permanecer o valor 
 					// que o usuário enviou caso haja falha na validação.
