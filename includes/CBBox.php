@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.13.3
+ * @version 1.14.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.13.3';
+	private $versao = '1.14.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -278,7 +278,12 @@ class CBBox extends CBBox_Helpers {
 					}
 
 					// recebe o valor do formulário
-					$valor = isset($_POST[$campo_nome_completo]) ? trim($_POST[$campo_nome_completo]) : null;
+					$valor = isset($_POST[$campo_nome_completo]) ? $_POST[$campo_nome_completo] : null;
+
+					// se for uma string, vamos remover espaços em branco desnecessários
+					if (is_string($valor)) {
+						$valor = trim($valor);
+					}
 
 					// se o valor tiver sido preenchido e não for do tipo de data
 					// vamos tentar formatar o valor para o formato configurado.
@@ -682,7 +687,11 @@ class CBBox extends CBBox_Helpers {
 		// se um novo valor foi enviado via $_POST para o campo, vamos populá-lo com este valor. 
 		// podendo substituir o valor pré-definido.
 		if (!empty($_POST[$nome_campo_completo])) {
-			$valor_campo = sanitize_text_field($_POST[$nome_campo_completo]);
+			if (is_string($_POST[$nome_campo_completo])) {
+				$valor_campo = sanitize_text_field($_POST[$nome_campo_completo]);
+			} else {
+				$valor_campo = $_POST[$nome_campo_completo];
+			}
 		}
 
 		// se mesmo assim o valor do campo for vazio, não precisamos formatar nada
@@ -724,6 +733,11 @@ class CBBox extends CBBox_Helpers {
 			case (is_array($formato) && isset($formato['decimal'])) || (is_string($formato) && $formato === 'decimal'):
 				$valor_campo = $this->formata_decimal($valor_campo, $formato['decimal'] ?? []);
 				break;
+			case is_string($formato) && $formato === 'array' && $tipo === 'exibir':
+				if (is_serialized($valor_campo)) {
+					$valor_campo = unserialize($valor_campo);
+				}
+				break;
 
 			default:
 				// Se nenhum formato conhecido foi especificado, não altera o valor
@@ -731,10 +745,12 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		// atualizamos o valor na referência do campo
-		$campo['valor'] = sanitize_text_field($valor_campo);
+		if (is_string($valor_campo)) {
+			$campo['valor'] = sanitize_text_field($valor_campo);
+			return $campo['valor'];
+		}
 
-		// retorna o valor do campo formatado
-		return $valor_campo;
+		return $campo['valor'] = $valor_campo;
 	}
 
 	/**
@@ -1002,7 +1018,11 @@ class CBBox extends CBBox_Helpers {
 		if ($campo["tipo"] == 'wp_media') {
 			$valor = $campo["valor"] ?? [];
 		} else {
-			$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
+			if (is_string($campo["valor"])) {
+				$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
+			} else {
+				$valor = $campo["valor"] ?? null;
+			}
 		}
 
 		// renderiza o campo específico de acordo com o seu tipo
@@ -1033,6 +1053,9 @@ class CBBox extends CBBox_Helpers {
 				break;
 			case 'grupo':
 				$fieldset .= $this->renderiza_campo_grupo($campo);
+				break;
+			case 'personalizado':
+				$fieldset .= $this->renderiza_campo_personalizado($campo, $valor, $atributos, $grupo_id);
 				break;
 		}
 
@@ -1316,6 +1339,30 @@ class CBBox extends CBBox_Helpers {
 		}
 
 		return $campos_grupo;
+	}
+
+	/**
+	 * Renderiza um campo personalizado, onde o HTML é fornecido diretamente através do atributo "callback".
+	 *
+	 * @param array $campo Array associativo contendo as informações do campo.
+	 * @param mixed $valor O valor inicial do campo.
+	 * @param string $atributos Atributos adicionais do campo.
+	 * @param string|null $grupo_id O ID do grupo do qual o campo faz parte.
+	 * 
+	 * @return string
+	 */
+	private function renderiza_campo_personalizado(array $campo, $valor, string $atributos, ?string $grupo_id) {
+		// Nome do campo considerando o grupo (se aplicável)
+		$nome_campo = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
+
+		// Chama o callback definido no campo
+		if (is_callable($campo["callback"])) {
+			// Passa os parâmetros necessários para o callback
+			return call_user_func($campo["callback"], $nome_campo, $valor, $atributos);
+		}
+
+		// Caso o callback não seja válido, retorna uma mensagem de erro ou vazio
+		return "<p>Callback inválido para o campo {$campo['name']}.</p>";
 	}
 
 	/**
