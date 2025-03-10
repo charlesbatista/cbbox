@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.14.0
+ * @version 1.15.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.14.0';
+	private $versao = '1.15.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -271,6 +271,8 @@ class CBBox extends CBBox_Helpers {
 		if (!empty($campos)) {
 			foreach ($campos as $campo) {
 				if (!empty($campo["name"])) {
+					
+					// se o campo for do tipo wp_media, vamos adicionar um sufixo
 					if ($campo["tipo"] === 'wp_media') {
 						$campo_nome_completo = $prefixo . $campo["name"] . "_url";
 					} else {
@@ -304,6 +306,14 @@ class CBBox extends CBBox_Helpers {
 					// Processamento de validações específicas
 					if (!empty($campo["validacao"]) && is_array($campo["validacao"])) {
 						$this->aplica_validacoes($post_id, $campos, $campo, $valor, $campo_nome_completo);
+					}
+
+					// Validaremos a extensão do arquivo se o campo for do tipo wp_media
+					if ($campo["tipo"] === 'wp_media') {
+						$extensao = pathinfo($valor, PATHINFO_EXTENSION);
+						if (!empty($valor) && !in_array($extensao, $campo["formatos"])) {
+							$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O arquivo fornecido não é um formato válido.';
+						}
 					}
 
 					// Se o campo é um grupo, recursivamente valida seus subcampos
