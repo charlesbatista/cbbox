@@ -179,6 +179,21 @@ class CBBox_Helpers {
 	}
 
 	/**
+	 * Valida se o ano informato é maior que o ano atual.
+	 * 
+	 * @param string 	$ano 	O ano a ser validado.
+	 * @return bool 			Retorna true se o ano for maior que o ano atual, false caso contrário.
+	 * 
+	 */
+	public function ano_maior_que_atual($ano) {
+		// Obter o ano atual
+		$ano_atual = date('Y');
+
+		// Comparar os anos
+		return $ano > $ano_atual;
+	}
+
+	/**
 	 * Compara duas datas e verifica qual é a maior.
 	 * 
 	 * @param string 	$data1 		A primeira data a ser comparada.

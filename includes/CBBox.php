@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.15.0
+ * @version 1.16.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.15.0';
+	private $versao = '1.16.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -271,7 +271,7 @@ class CBBox extends CBBox_Helpers {
 		if (!empty($campos)) {
 			foreach ($campos as $campo) {
 				if (!empty($campo["name"])) {
-					
+
 					// se o campo for do tipo wp_media, vamos adicionar um sufixo
 					if ($campo["tipo"] === 'wp_media') {
 						$campo_nome_completo = $prefixo . $campo["name"] . "_url";
@@ -365,8 +365,11 @@ class CBBox extends CBBox_Helpers {
 					// Define um formato padrão para as datas caso um não seja especificado
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
+					// transforma o formato para algo humano, como (0000 ou 00/00/0000)
+					$formato = $this->formata_formato_data($formato);
+
 					if (!empty($valor) && !$this->valida_data($valor, $formato)) {
-						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (' . $formato . ').';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (Exemplo: ' . $formato . ').';
 					}
 					break;
 
@@ -376,6 +379,15 @@ class CBBox extends CBBox_Helpers {
 
 					if (!empty($valor) && $this->data_maior_que_hoje($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data não pode ser maior que a data de hoje.';
+					}
+					break;
+
+				case 'ate_este_ano':
+					// Define um formato padrão para as datas caso um não seja especificado
+					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
+
+					if (!empty($valor) && $this->ano_maior_que_atual($valor, $formato)) {
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O ano não pode ser maior que o ano atual.';
 					}
 					break;
 
@@ -426,6 +438,23 @@ class CBBox extends CBBox_Helpers {
 					break;
 			}
 		}
+	}
+
+	/**
+	 * Formata a data para um formato mais humano.
+	 * 
+	 * Este método é responsável por transformar o formato de data passado para algo mais
+	 * humano, como (2025 ou 10/03/2025)
+	 * 
+	 * @param string $formato O formato da data a ser transformado.
+	 * @return string O formato transformado.
+	 */
+	private function formata_formato_data(string $formato) {
+		$formato = str_replace('d', date('d'), $formato);
+		$formato = str_replace('m', date('m'), $formato);
+		$formato = str_replace('Y', date('Y'), $formato);
+
+		return $formato;
 	}
 
 	/**
