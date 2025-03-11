@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.16.0
+ * @version 1.16.1
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.16.0';
+	private $versao = '1.16.1';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -366,10 +366,10 @@ class CBBox extends CBBox_Helpers {
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
 					// transforma o formato para algo humano, como (0000 ou 00/00/0000)
-					$formato = $this->formata_formato_data($formato);
+					$formato_humano = $this->formata_formato_data($formato);
 
 					if (!empty($valor) && !$this->valida_data($valor, $formato)) {
-						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (Exemplo: ' . $formato . ').';
+						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (Exemplo: ' . $formato_humano . ').';
 					}
 					break;
 
