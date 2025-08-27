@@ -168,7 +168,7 @@
 
     /* ----- Selectize ----- */
 
-    .selectize-control.single .selectize-input {
+    .selectize-control .selectize-input {
         box-shadow: none !important;
         background-color: #fff !important;
         background-image: none !important;
@@ -176,7 +176,7 @@
         background-repeat: no-repeat !important
     }
 
-    .selectize-control.single .selectize-input,
+    .selectize-control .selectize-input,
     .selectize-dropdown [data-selectable].option {
         padding: 0.65rem 0.75rem !important;
     }

@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.16.1
+ * @version 1.17.0
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.16.1';
+	private $versao = '1.17.0';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -588,13 +588,68 @@ class CBBox extends CBBox_Helpers {
 							$this->salva_campo($post_id, $subcampo, $campo['name'] . '_');
 						}
 					}
+				} elseif ($campo['tipo'] === 'taxonomia') {
+					$this->salva_campo_taxonomia($post_id, $campo);
 				} else {
-					$campo_nome_completo = $campo['name'];
-					if (!isset($this->meta_boxes_erros_campos[$campo_nome_completo])) {
+					if (!isset($this->meta_boxes_erros_campos[$campo['name']])) {
 						$this->salva_campo($post_id, $campo);
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Salva um campo de taxonomia no banco de dados.
+	 *
+	 * Este método trata especificamente campos de taxonomia, podendo salvar IDs existentes
+	 * ou criar novos termos quando o valor é texto.
+	 *
+	 * @param int $post_id O ID do post no qual os dados serão salvos.
+	 * @param array $campo Array associativo que descreve as propriedades do campo de taxonomia.
+	 */
+	private function salva_campo_taxonomia(int $post_id, array $campo) {
+		$nome_campo = $campo['name'];
+		$taxonomia = $campo['taxonomia'] ?? '';
+
+		if (empty($taxonomia)) {
+			return;
+		}
+
+		$valor = isset($_POST[$nome_campo]) ? $_POST[$nome_campo] : null;
+
+		if (empty($valor)) {
+			wp_set_object_terms($post_id, [], $taxonomia); // Remove todos os termos
+			return;
+		}
+
+		// Se for campo múltiplo, $valor será um array
+		$valores = is_array($valor) ? $valor : [$valor];
+		$term_ids = [];
+
+		foreach ($valores as $val) {
+			if (is_numeric($val)) {
+				// Se for um ID numérico, usa diretamente
+				$term_ids[] = intval($val);
+			} else {
+				// Se for texto, cria um novo termo ou obtém o existente
+				$term = wp_insert_term(sanitize_text_field($val), $taxonomia);
+				if (!is_wp_error($term)) {
+					$term_ids[] = $term['term_id'];
+				} elseif ($term->get_error_code() === 'term_exists') {
+					// Se o termo já existe, obtém o ID do termo existente
+					$existing_term = get_term_by('name', sanitize_text_field($val), $taxonomia);
+					if ($existing_term) {
+						$term_ids[] = $existing_term->term_id;
+					}
+				}
+			}
+		}
+
+		// Associa os termos ao post
+		if (!empty($term_ids)) {
+			// Associa termos usando o sistema nativo de taxonomias 
+			wp_set_object_terms($post_id, $term_ids, $taxonomia);
 		}
 	}
 
@@ -1072,6 +1127,9 @@ class CBBox extends CBBox_Helpers {
 			case 'checkbox':
 				$fieldset .= $this->renderiza_campo_checkbox($campo, $valor, $atributos, $grupo_id);
 				break;
+			case 'taxonomia':
+				$fieldset .= $this->renderiza_campo_taxonomia($campo, $atributos, $grupo_id);
+				break;
 			case 'date':
 				$fieldset .= $this->renderiza_campo_data($campo, $valor, $atributos, $grupo_id);
 				break;
@@ -1402,6 +1460,72 @@ class CBBox extends CBBox_Helpers {
 
 		// Caso o callback não seja válido, retorna uma mensagem de erro ou vazio
 		return "<p>Callback inválido para o campo {$campo['name']}.</p>";
+	}
+
+	/**
+	 * Renderiza um campo de taxonomia.
+	 *
+	 * @param array 	$campo 		Array associativo contendo as informações do campo.
+	 * @param string 	$atributos 	Atributos adicionais do campo.
+	 * @param string 	$grupo_id  	ID do grupo do qual o campo faz parte.
+	 * 
+	 * @return string
+	 */
+	private function renderiza_campo_taxonomia(array $campo, string $atributos, ?string $grupo_id) {
+		global $post; // Acessa o objeto global do post
+
+		$nome_campo  = $this->adiciona_nome_grupo_campo($campo["name"], $grupo_id);
+		$placeholder = !empty($campo['placeholder']) ? " placeholder='{$campo['placeholder']}'" : '';
+		$multiple = isset($campo["atributos"]["multiple"]) && $campo["atributos"]["multiple"] ? ' multiple' : '';
+		$select_name = $multiple ? $nome_campo . '[]' : $nome_campo;
+
+		$select = "<select name='" . esc_attr($select_name) . "' {$placeholder} {$atributos} {$multiple}>";
+
+		if (!isset($campo["desativar-opcao-padrao"]) && !$multiple) {
+			$select .= '<option value="" selected disabled>' . ($campo["placeholder"] ?? 'Selecione uma opção') . '</option>';
+		}
+
+		// Carrega os termos da taxonomia especificada
+		$taxonomia = $campo["taxonomia"] ?? '';
+		$opcoes = [];
+		$termos_selecionados = [];
+
+		if (!empty($taxonomia) && isset($post->ID)) {
+			// Obtém os termos associados ao post atual
+			$termos_do_post = wp_get_post_terms($post->ID, $taxonomia, ['fields' => 'ids']);
+			if (!is_wp_error($termos_do_post)) {
+				$termos_selecionados = $termos_do_post;
+			}
+
+			$terms = get_terms([
+				'taxonomy' => $taxonomia,
+				'hide_empty' => false,
+			]);
+
+			if (!is_wp_error($terms)) {
+				foreach ($terms as $term) {
+					$opcoes[] = [
+						'valor' => $term->term_id,
+						'texto' => $term->name
+					];
+				}
+			}
+		}
+
+		if (is_array($opcoes) && !empty($opcoes)) {
+			foreach ($opcoes as $opcao) {
+				$option_value = $opcao['valor'];
+				$option_text = $opcao['texto'];
+
+				$selected = in_array($option_value, $termos_selecionados) ? ' selected' : '';
+
+				$select .= '<option value="' . esc_attr(htmlspecialchars($option_value)) . '" ' .
+					$selected . '>' .
+					htmlspecialchars($option_text) . '</option>';
+			}
+		}
+
+		return $select .= '</select>';
 	}
 
 	/**
