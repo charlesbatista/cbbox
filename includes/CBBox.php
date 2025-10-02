@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.17.1
+ * @version 1.17.2
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.17.1';
+	private $versao = '1.17.2';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -289,7 +289,7 @@ class CBBox extends CBBox_Helpers {
 
 					// se o valor tiver sido preenchido e não for do tipo de data
 					// vamos tentar formatar o valor para o formato configurado.
-					if (CBBox_Helpers::se_string_vazia($valor) && isset($campo['formatos']['salvar']) && is_string($campo['formatos']['salvar']) && strpos($campo['formatos']['salvar'], 'data:') !== 0) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && isset($campo['formatos']['salvar']) && is_string($campo['formatos']['salvar']) && strpos($campo['formatos']['salvar'], 'data:') !== 0) {
 						// formata o valor do campo caso exista a configuração para tal
 						$valor = $this->formata_valor_campo($campo, 'exibir', $campo_nome_completo, $valor);
 					}
@@ -299,7 +299,7 @@ class CBBox extends CBBox_Helpers {
 					set_transient(join('_', [$post_id, $campo_nome_completo]), $valor, 60);
 
 					// Verifica se o campo é obrigatório e se está vazio
-					if (!empty($campo["atributos"]["required"]) && $campo["atributos"]["required"] === true && empty($valor)) {
+					if (!empty($campo["atributos"]["required"]) && $campo["atributos"]["required"] === true && CBBox_Helpers::se_string_vazia($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = $campo["label"] . ' é um campo obrigatório.';
 					}
 
@@ -311,7 +311,7 @@ class CBBox extends CBBox_Helpers {
 					// Validaremos a extensão do arquivo se o campo for do tipo wp_media
 					if ($campo["tipo"] === 'wp_media') {
 						$extensao = pathinfo($valor, PATHINFO_EXTENSION);
-						if (CBBox_Helpers::se_string_vazia($valor) && !in_array($extensao, $campo["formatos"])) {
+						if (!CBBox_Helpers::se_string_vazia($valor) && !in_array($extensao, $campo["formatos"])) {
 							$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O arquivo fornecido não é um formato válido.';
 						}
 					}
