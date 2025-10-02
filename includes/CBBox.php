@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.17.0
+ * @version 1.17.1
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.17.0';
+	private $versao = '1.17.1';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -289,7 +289,7 @@ class CBBox extends CBBox_Helpers {
 
 					// se o valor tiver sido preenchido e não for do tipo de data
 					// vamos tentar formatar o valor para o formato configurado.
-					if (!empty($valor) && isset($campo['formatos']['salvar']) && is_string($campo['formatos']['salvar']) && strpos($campo['formatos']['salvar'], 'data:') !== 0) {
+					if (CBBox_Helpers::se_string_vazia($valor) && isset($campo['formatos']['salvar']) && is_string($campo['formatos']['salvar']) && strpos($campo['formatos']['salvar'], 'data:') !== 0) {
 						// formata o valor do campo caso exista a configuração para tal
 						$valor = $this->formata_valor_campo($campo, 'exibir', $campo_nome_completo, $valor);
 					}
@@ -311,7 +311,7 @@ class CBBox extends CBBox_Helpers {
 					// Validaremos a extensão do arquivo se o campo for do tipo wp_media
 					if ($campo["tipo"] === 'wp_media') {
 						$extensao = pathinfo($valor, PATHINFO_EXTENSION);
-						if (!empty($valor) && !in_array($extensao, $campo["formatos"])) {
+						if (CBBox_Helpers::se_string_vazia($valor) && !in_array($extensao, $campo["formatos"])) {
 							$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O arquivo fornecido não é um formato válido.';
 						}
 					}
@@ -350,13 +350,13 @@ class CBBox extends CBBox_Helpers {
 
 			switch ($validacao) {
 				case 'cpf':
-					if (!empty($valor) && !$this->valida_cpf($valor)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cpf($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CPF informado é inválido.';
 					}
 					break;
 
 				case 'cnpj':
-					if (!empty($valor) && !$this->valida_cnpj($valor)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cnpj($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CNPJ informado é inválido.';
 					}
 					break;
@@ -368,7 +368,7 @@ class CBBox extends CBBox_Helpers {
 					// transforma o formato para algo humano, como (0000 ou 00/00/0000)
 					$formato_humano = $this->formata_formato_data($formato);
 
-					if (!empty($valor) && !$this->valida_data($valor, $formato)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_data($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (Exemplo: ' . $formato_humano . ').';
 					}
 					break;
@@ -377,7 +377,7 @@ class CBBox extends CBBox_Helpers {
 					// Define um formato padrão para as datas caso um não seja especificado
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
-					if (!empty($valor) && $this->data_maior_que_hoje($valor, $formato)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && $this->data_maior_que_hoje($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data não pode ser maior que a data de hoje.';
 					}
 					break;
@@ -386,7 +386,7 @@ class CBBox extends CBBox_Helpers {
 					// Define um formato padrão para as datas caso um não seja especificado
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
-					if (!empty($valor) && $this->ano_maior_que_atual($valor, $formato)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && $this->ano_maior_que_atual($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O ano não pode ser maior que o ano atual.';
 					}
 					break;
@@ -414,7 +414,7 @@ class CBBox extends CBBox_Helpers {
 
 				case 'url':
 					// Valida se o campo não está vazio e se a URL é inválida
-					if (!empty($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
+					if (CBBox_Helpers::se_string_vazia($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL (' . $valor . ') fornecida é inválida.';
 					}
 					break;
@@ -1108,10 +1108,26 @@ class CBBox extends CBBox_Helpers {
 		$fieldset = '<fieldset id="campo-' . (isset($grupo_id) ? $grupo_id . '-' : null) . $campo["name"] . '">';
 
 		// define o valor do campo de acordo com o valor passado pelos parâmetros
-		// se o tipo do campo for para envio de media, não vamos sanitizar nada.
-		if ($campo["tipo"] == 'wp_media') {
-			$valor = $campo["valor"] ?? [];
-		} else {
+		if ($campo['tipo'] === 'wp_media') {
+			$valor = $campo['valor'] ?? [];
+		}
+
+		// Editor WYSIWYG): mantém <p>, <br>, <strong>, etc.
+		elseif ($campo['tipo'] === 'wp_editor') {
+			$valor = isset($campo['valor'])
+				? wp_kses_post(wp_unslash($campo['valor']))
+				: '';
+		}
+
+		// Texto multilinha sem HTML (só \n)
+		elseif ($campo['tipo'] === 'textarea') {
+			$valor = isset($campo['valor'])
+				? sanitize_textarea_field(wp_unslash($campo['valor']))
+				: '';
+		}
+
+		// Texto de uma linha / simples
+		else {
 			if (is_string($campo["valor"])) {
 				$valor = stripslashes(sanitize_text_field($campo["valor"])) ?? null;
 			} else {

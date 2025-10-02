@@ -276,7 +276,7 @@ class CBBox_Helpers {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Formata um valor numérico como uma representação monetária brasileira.
 	 *
@@ -303,5 +303,32 @@ class CBBox_Helpers {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * A partir do texto de um editor WYSIWYG, verifica se o campo está vazio, mesmo que contenha
+	 * códigos html, como "&nbsp;" para espaços. Verificar se não tem nenhum caractere "visível".
+	 * 
+	 * @param string $string A string a ser verificada.
+	 * @return bool Retorna true se a string estiver vazia ou contiver apenas espaços em branco, false caso contrário.
+	 */
+	public static function se_string_vazia($string) {
+		if (is_array($string)) {
+			return empty($string);
+		}
+
+		// Converte entidades HTML (&nbsp; -> caractere real, etc.)
+		$s = html_entity_decode((string) $string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+		// Substitui caracteres invisíveis por espaço normal
+		$s = preg_replace('/[\x{00A0}\x{2000}-\x{200D}\x{202F}\x{3000}\x{FEFF}]/u', ' ', $s);
+
+		// Remove tags HTML
+		$s = strip_tags($s);
+
+		// Remove espaços extras
+		$s = trim(preg_replace('/\s+/u', ' ', $s));
+
+		return $s === '';
 	}
 }
