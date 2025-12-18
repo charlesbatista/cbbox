@@ -7,7 +7,7 @@
  * Ela permite a adição de diversos tipos de campos, validações e estilizações personalizadas.
  *
  * @package charlesbatista/cbbox
- * @version 1.17.2
+ * @version 1.17.3
  * @author Charles Batista <charles.batista@tjce.jus.br>
  * @license MIT License
  * @url https://packagist.org/packages/charlesbatista/cbbox
@@ -17,7 +17,7 @@ class CBBox extends CBBox_Helpers {
 	/**
 	 * Versão do framework
 	 */
-	private $versao = '1.17.2';
+	private $versao = '1.17.3';
 
 	/**
 	 * Array com todas as meta boxes a serem montadas
@@ -350,13 +350,13 @@ class CBBox extends CBBox_Helpers {
 
 			switch ($validacao) {
 				case 'cpf':
-					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cpf($valor)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cpf($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CPF informado é inválido.';
 					}
 					break;
 
 				case 'cnpj':
-					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cnpj($valor)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && !$this->valida_cnpj($valor)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O CNPJ informado é inválido.';
 					}
 					break;
@@ -368,7 +368,7 @@ class CBBox extends CBBox_Helpers {
 					// transforma o formato para algo humano, como (0000 ou 00/00/0000)
 					$formato_humano = $this->formata_formato_data($formato);
 
-					if (CBBox_Helpers::se_string_vazia($valor) && !$this->valida_data($valor, $formato)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && !$this->valida_data($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data fornecida é inválida ou não está no formato esperado (Exemplo: ' . $formato_humano . ').';
 					}
 					break;
@@ -377,7 +377,7 @@ class CBBox extends CBBox_Helpers {
 					// Define um formato padrão para as datas caso um não seja especificado
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
-					if (CBBox_Helpers::se_string_vazia($valor) && $this->data_maior_que_hoje($valor, $formato)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && $this->data_maior_que_hoje($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A data não pode ser maior que a data de hoje.';
 					}
 					break;
@@ -386,7 +386,7 @@ class CBBox extends CBBox_Helpers {
 					// Define um formato padrão para as datas caso um não seja especificado
 					$formato = !isset($parametros) ? 'd/m/Y' : $parametros;
 
-					if (CBBox_Helpers::se_string_vazia($valor) && $this->ano_maior_que_atual($valor, $formato)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && $this->ano_maior_que_atual($valor, $formato)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'O ano não pode ser maior que o ano atual.';
 					}
 					break;
@@ -414,7 +414,7 @@ class CBBox extends CBBox_Helpers {
 
 				case 'url':
 					// Valida se o campo não está vazio e se a URL é inválida
-					if (CBBox_Helpers::se_string_vazia($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
+					if (!CBBox_Helpers::se_string_vazia($valor) && !filter_var($valor, FILTER_VALIDATE_URL)) {
 						$this->meta_boxes_erros_campos[$campo_nome_completo] = 'A URL (' . $valor . ') fornecida é inválida.';
 					}
 					break;
@@ -1376,7 +1376,7 @@ class CBBox extends CBBox_Helpers {
 		];
 
 		// Mescla as configurações padrão com as configurações do campo
-		$settings = array_merge($default_settings, $campo["configuracoes"] ?? []);
+		$settings = array_merge($default_settings, $campo["configuracoes"] ?: []);
 
 		ob_start();
 		wp_editor($valor, $editor_id, $settings);
