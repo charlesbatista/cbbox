@@ -1,0 +1,135 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableView class="oracle.dbtools.crest.model.design.relational.TableView" directorySegmentName="seg_0" id="9559C9DF-4FBC-3090-740C-6E69A57E5329" name="VPEFI_PESSOA_FISICA">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:23:50 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<ordsAlias>view_2</ordsAlias>
+<userDefined>true</userDefined>
+<userDefinedSQL><![CDATA[SELECT
+    t_pess_pessoa.pess_seq_chave,
+    t_pess_pessoa.pess_nome,
+    t_pess_pessoa.pess_descricao,
+    t_pess_pessoa.pess_abreviacao,
+    tpefi_pessoa_fisica.pefi_seq_chave,
+    tpefi_pessoa_fisica.pefi_num_cpf,
+    tpefi_pessoa_fisica.pefi_dsc_nome,
+    tpefi_pessoa_fisica.pefi_enu_sexo
+FROM
+         t_pess_pessoa
+    INNER JOIN tpefi_pessoa_fisica ON t_pess_pessoa.pess_seq_chave = tpefi_pessoa_fisica.t_pess_pessoa_pefi_seq_chave]]></userDefinedSQL>
+<parsed>true</parsed>
+<includeSchemaNameInQuery>true</includeSchemaNameInQuery>
+<viewElements>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="pess_seq_chave" id="D51A2F8E-4E69-CE3D-180F-8C9B06C16948">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>NUMBER</dataType>
+<headerAlias>pess_seq_chave</headerAlias>
+<reference>false</reference>
+<referencedColumn>430628D8-E415-A516-5BDE-2C4768347A47</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="PESS_DSC_NOME" id="FA8B726B-09B5-13EE-86B0-2B125AC6288D">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>VARCHAR2 (100)</dataType>
+<headerAlias>pess_nome</headerAlias>
+<reference>false</reference>
+<referencedColumn>25A1546E-14CD-6315-954B-25226BE482E4</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="PESS_DSC_DESCRICAO" id="F53A87BC-25BE-CF09-0F0A-265A49B8AD7B">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>VARCHAR2 (100 CHAR)</dataType>
+<headerAlias>pess_descricao</headerAlias>
+<reference>false</reference>
+<referencedColumn>791B1226-956D-A4CA-79E6-1553E8D1935F</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="PESS_DSC_ABREVIACAO" id="0948745C-A0D1-5AF9-947C-5475C2DEB167">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>VARCHAR2 (10)</dataType>
+<headerAlias>pess_abreviacao</headerAlias>
+<reference>false</reference>
+<referencedColumn>28730D24-6917-49E2-4388-560EA28A13E0</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="pefi_seq_chave" id="16C4467B-907D-8A70-1FCF-27D3AA1E6DD5">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:44:35 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>NUMBER</dataType>
+<headerAlias>pefi_seq_chave</headerAlias>
+<reference>false</reference>
+<referencedColumn>9509DC7C-A3E2-F53B-383F-7AC2DD304C24</referencedColumn>
+<table>8E96DE47-C6DC-2286-5B49-F26F8B9A9611</table>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="pefi_num_cpf" id="76CC4347-D448-A889-B5FB-871BFC38C2B4">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>NUMBER</dataType>
+<headerAlias>pefi_num_cpf</headerAlias>
+<reference>false</reference>
+<referencedColumn>651CD3A0-2116-57C0-EF65-E0930E6A9B24</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="pefi_dsc_nome" id="479B3202-5E83-A9D0-2C46-807BC3340C18">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>VARCHAR2 (100)</dataType>
+<headerAlias>pefi_dsc_nome</headerAlias>
+<reference>false</reference>
+<referencedColumn>091E231B-11AE-B0E5-C174-9618BB167F9F</referencedColumn>
+</viewElement>
+<viewElement class="oracle.dbtools.crest.model.design.relational.ColumnView" name="pefi_enu_sexo" id="855E256C-13AD-FDF1-28A0-B2CF09C3F986">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-07 19:17:36 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<dataType>CHAR (1)</dataType>
+<headerAlias>pefi_enu_sexo</headerAlias>
+<reference>false</reference>
+<referencedColumn>FF018D13-FE06-C5C4-0428-027FD5612EA0</referencedColumn>
+</viewElement>
+</viewElements>
+<usedObjects>
+<UsedObject class="oracle.dbtools.crest.swingui.editor.viewbuilder.SQLNameHelper" id="8E96DE47-C6DC-2286-5B49-F26F8B9A9611">
+<container>true</container>
+<tableName>TPEFI_PESSOA_FISICA</tableName>
+</UsedObject>
+<UsedObject class="oracle.dbtools.crest.swingui.editor.viewbuilder.SQLNameHelper" id="9509DC7C-A3E2-F53B-383F-7AC2DD304C24">
+<columnName>PEFI_SEQ_CHAVE</columnName>
+<tableName>TPEFI_PESSOA_FISICA</tableName>
+</UsedObject>
+<UsedObject class="oracle.dbtools.crest.swingui.editor.viewbuilder.SQLNameHelper" id="651CD3A0-2116-57C0-EF65-E0930E6A9B24">
+<columnName>PEFI_NUM_CPF</columnName>
+<tableName>TPEFI_PESSOA_FISICA</tableName>
+</UsedObject>
+<UsedObject class="oracle.dbtools.crest.swingui.editor.viewbuilder.SQLNameHelper" id="091E231B-11AE-B0E5-C174-9618BB167F9F">
+<columnName>PEFI_DSC_NOME</columnName>
+<tableName>TPEFI_PESSOA_FISICA</tableName>
+</UsedObject>
+<UsedObject class="oracle.dbtools.crest.swingui.editor.viewbuilder.SQLNameHelper" id="FF018D13-FE06-C5C4-0428-027FD5612EA0">
+<columnName>PEFI_ENU_SEXO</columnName>
+<tableName>TPEFI_PESSOA_FISICA</tableName>
+</UsedObject>
+</usedObjects>
+</TableView>

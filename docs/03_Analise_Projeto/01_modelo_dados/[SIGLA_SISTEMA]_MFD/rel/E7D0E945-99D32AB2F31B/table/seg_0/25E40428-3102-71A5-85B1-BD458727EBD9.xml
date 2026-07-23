@@ -1,0 +1,86 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="25E40428-3102-71A5-85B1-BD458727EBD9" name="TPESS_PESSOA">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 12:07:43 UTC</createdTime>
+<comment><![CDATA[Tabela Pai de Pessoa.]]></comment>
+<commentInRDBMS><![CDATA[Tabela pai de Pessoa.]]></commentInRDBMS>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<ordsAlias>table_1</ordsAlias>
+<abbreviation>PESS</abbreviation>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="PESS_SEQ_CHAVE" id="430628D8-E415-A516-5BDE-2C4768347A47">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:33:22 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição correspondente ao campo chave>
+CHAVE PRIMÁRIA DA TABELA PESSOA]]></commentInRDBMS>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<notNullConstraintName>NNC_PESS_PESS_SEQ_CHAVE</notNullConstraintName>
+</Column>
+<Column name="PESS_DSC_NOME" id="25A1546E-14CD-6315-954B-25226BE482E4">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:37:37 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição correspondente ao campo>
+CAMPO NOME PESSOA]]></commentInRDBMS>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<structuredType>47E390DE-0671-C4B1-8428-0F45CBEE18F8</structuredType>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>100</dataTypeSize>
+<ownDataTypeParameters>100,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PESS_DSC_DESCRICAO" id="791B1226-956D-A4CA-79E6-1553E8D1935F">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:37:37 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição correspondente ao campo>
+DESCRIÇÃO DA PESSOA]]></commentInRDBMS>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<structuredType>47E390DE-0671-C4B1-8428-0F45CBEE18F8</structuredType>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>100 CHAR</dataTypeSize>
+<ownDataTypeParameters>100 CHAR,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PESS_DSC_ABREVIACAO" id="28730D24-6917-49E2-4388-560EA28A13E0">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:38:47 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição correspondente ao campo>
+ABREVIAÇÃO DA PESSOA]]></commentInRDBMS>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<structuredType>47E390DE-0671-C4B1-8428-0F45CBEE18F8</structuredType>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<dataTypeSize>10</dataTypeSize>
+<ownDataTypeParameters>10,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="FD97747E-34D9-64D6-48CF-11C33D435090" name="PK_PESS">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 13:39:11 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="430628D8-E415-A516-5BDE-2C4768347A47"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

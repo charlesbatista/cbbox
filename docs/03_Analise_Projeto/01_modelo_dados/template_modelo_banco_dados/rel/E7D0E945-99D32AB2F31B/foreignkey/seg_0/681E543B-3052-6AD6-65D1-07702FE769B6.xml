@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="681E543B-3052-6AD6-65D1-07702FE769B6" containerWithKeyObject="8E96DE47-C6DC-2286-5B49-F26F8B9A9611" localFKIndex="477C252B-A9ED-6AD6-B61F-27122760B478" name="FK_PEFI_PESS">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-12 22:16:21 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<referredTableLongName>TPESS_PESSOA</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>25E40428-3102-71A5-85B1-BD458727EBD9</referredTableID>
+<keyObject>FD97747E-34D9-64D6-48CF-11C33D435090</keyObject>
+<referredKeyID>FD97747E-34D9-64D6-48CF-11C33D435090</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>PESS_SEQ_CHAVE</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

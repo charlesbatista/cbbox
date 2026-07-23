@@ -1,0 +1,8 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<OSDM_Design class="oracle.dbtools.crest.model.design.Design" name="[SIGLA_SISTEMA]_MFD" id="C5E1A90D-7305-2BFE-A359-F8FA11F3CA00" version="3.5">
+<createdBy>milen</createdBy>
+<createdTime>2020-07-28 19:21:09 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<capitalNames>false</capitalNames>
+<designId>C5E1A90D-7305-2BFE-A359-F8FA11F3CA00</designId>
+</OSDM_Design>

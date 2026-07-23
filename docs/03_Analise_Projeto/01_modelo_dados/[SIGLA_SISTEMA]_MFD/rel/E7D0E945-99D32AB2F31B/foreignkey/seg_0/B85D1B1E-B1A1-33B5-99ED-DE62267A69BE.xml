@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="B85D1B1E-B1A1-33B5-99ED-DE62267A69BE" containerWithKeyObject="7A69AAA0-74EF-9E80-3427-0C7729DDBA2B" localFKIndex="806E0930-7F81-A1F3-F0D5-BC24D486DB08" name="FK_PEJU_PESS">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-12 22:13:44 UTC</createdTime>
+<ownerDesignName>[SIGLA_SISTEMA]_MFD</ownerDesignName>
+<referredTableLongName>TPESS_PESSOA</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>25E40428-3102-71A5-85B1-BD458727EBD9</referredTableID>
+<keyObject>FD97747E-34D9-64D6-48CF-11C33D435090</keyObject>
+<referredKeyID>FD97747E-34D9-64D6-48CF-11C33D435090</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>PESS_SEQ_CHAVE</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

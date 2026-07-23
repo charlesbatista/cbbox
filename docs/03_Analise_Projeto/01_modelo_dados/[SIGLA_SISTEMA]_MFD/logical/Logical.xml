@@ -1,0 +1,7 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<LogicalDesign class="oracle.dbtools.crest.model.design.logical.LogicalDesign" name="Logical" id="499A8FE4-4F72-6205-50FD-9136CBC2A487" mainViewID="2A7149D4-8BFA-0175-E91E-EFE24E135EAE">
+<createdBy>milen</createdBy>
+<createdTime>2020-07-28 19:21:09 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<shouldBeOpen>false</shouldBeOpen>
+</LogicalDesign>

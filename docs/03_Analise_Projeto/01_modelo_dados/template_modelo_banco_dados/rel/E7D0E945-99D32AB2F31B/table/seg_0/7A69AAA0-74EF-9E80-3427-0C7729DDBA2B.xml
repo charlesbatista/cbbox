@@ -1,0 +1,191 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="7A69AAA0-74EF-9E80-3427-0C7729DDBA2B" name="TPEJU_PESSOA_JURIDICA">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-03 12:09:02 UTC</createdTime>
+<comment><![CDATA[<Informar dados da Entidade de Negócio aqui>
+Tabela que armazena Dados de Pessoa Jurídica.]]></comment>
+<commentInRDBMS><![CDATA[<Informar dados da Entidade de Negócio aqui>
+Tabela que armazena Dados de Pessoa Jurídica.]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<ordsAlias>table_3</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="PEJU_SEQ_CHAVE" id="5B308B40-8CE0-324B-4830-951A9DDA053E">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:48:10 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição correspondente a chave da tabela>
+CHAVE DA TABELA DE PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_NUM_CNPJ" id="58147BED-EF9E-352A-F31F-AD6FEA30E6A6">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+CNPJ PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<dataTypePrecision>11</dataTypePrecision>
+<ownDataTypeParameters>,11,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_RAZAO_SOCIAL" id="B207531B-2CD0-1A0C-D026-C2B4991968F7">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+RAZÃO SOCIAL PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>100</dataTypeSize>
+<ownDataTypeParameters>100,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_ENDERECO" id="4E4B013E-4830-B21C-D046-F5B8B78C3DC0">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+ENDEREÇO PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>100</dataTypeSize>
+<ownDataTypeParameters>100,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_BAIRRO" id="3AC9FE2F-10E5-BB42-0012-DE8D321A1F3D">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+BAIRRO PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>100</dataTypeSize>
+<ownDataTypeParameters>100,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_CIDADE" id="AE94DC24-89E3-F008-7C36-4DCFA5AE4EFC">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+CIDADE PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>30</dataTypeSize>
+<ownDataTypeParameters>30,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_ESTADO" id="5787FA72-5027-2F1F-5F4B-E40628FEC41C">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+ESTADO PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>2</dataTypeSize>
+<ownDataTypeParameters>2,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_NUM_CEP" id="D9701494-549E-1FCD-42B6-BB8AC833D06E">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+CEP PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<dataTypePrecision>8</dataTypePrecision>
+<ownDataTypeParameters>,8,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_EMAIL" id="E541C4CF-E21D-9FB8-8980-D9751614C6AE">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+EMAIL PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>15</dataTypeSize>
+<ownDataTypeParameters>15,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PEJU_DSC_CONTATO" id="A09879B7-72FA-E2AE-19BE-8C2DD32C913B">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:50:56 UTC</createdTime>
+<commentInRDBMS><![CDATA[<Incluir aqui a descrição do campo>
+CONTATO PESSOA JURÍDICA]]></commentInRDBMS>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<dataTypeSize>20</dataTypeSize>
+<ownDataTypeParameters>20,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PESS_SEQ_CHAVE_PAI" id="C8F9E740-9A5D-843B-32F6-5F371A5D70E1">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-12 22:13:44 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<previousColumn>false</previousColumn>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="B85D1B1E-B1A1-33B5-99ED-DE62267A69BE" referredColumn="430628D8-E415-A516-5BDE-2C4768347A47"/>
+</associations>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="2722F745-DA46-47A7-3B10-ACCA217B345C" name="PK_PEJU">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-05 13:52:19 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="5B308B40-8CE0-324B-4830-951A9DDA053E"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="806E0930-7F81-A1F3-F0D5-BC24D486DB08" name="FK_PEJU_PESS">
+<createdBy>milen</createdBy>
+<createdTime>2020-08-12 22:13:44 UTC</createdTime>
+<ownerDesignName>template_modelo_banco_dados</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C8F9E740-9A5D-843B-32F6-5F371A5D70E1"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>
